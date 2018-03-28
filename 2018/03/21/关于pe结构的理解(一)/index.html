@@ -28,7 +28,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/03/21/关于pe结构的理解(一)/images/1521714596580.png">
 <meta property="og:image" content="http://yoursite.com/2018/03/21/关于pe结构的理解(一)/images/1521714760778.png">
 <meta property="og:image" content="http://yoursite.com/2018/03/21/关于pe结构的理解(一)/images/1521715221738.png">
-<meta property="og:updated_time" content="2018-03-28T05:42:41.683Z">
+<meta property="og:updated_time" content="2018-03-28T05:44:52.191Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="关于pe结构的理解(一)">
 <meta name="twitter:description" content="前言接触PE结构已经不是一天两天的事了..记得在去年的十一月份我就初步的接触了PE结构 但是因为那时候并不能沉下心思去看 去了解PE结构(究其原因应该是对未来的迷茫以及急于求成的心态)于是很多细节都没有去理解(话说回来那时候还真是年轻 认为做题就是一切 对任何东西都不求甚解) 现在想起来 那时候跟vvv学长诉苦感到迷茫的时候 vvv学长告诉我要慢点学 现在才感觉到慢点学真正的含义是什么..(感觉绕">
@@ -185,6 +185,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>接触PE结构已经不是一天两天的事了..记得在去年的十一月份我就初步的接触了PE结构 但是因为那时候并不能沉下心思去看 去了解PE结构(究其原因应该是对未来的迷茫以及急于求成的心态)于是很多细节都没有去理解(话说回来那时候还真是年轻 认为做题就是一切 对任何东西都不求甚解) 现在想起来 那时候跟vvv学长诉苦感到迷茫的时候 vvv学长告诉我要慢点学 现在才感觉到慢点学真正的含义是什么..(感觉绕了不少弯路) 抱着觉今是而昨非的态度 这两天认认真真的 对着PEview/010editor/od/逆核  将以前没能弄顺/没有理清楚的东西给整理了一遍 也想更新一下博文 就记录一发吧！<br>这个系列有多篇 具体怎么分..看我学到哪里吧233</p>
+<a id="more"></a>
 <h2 id="RVA-RAW-VA"><a href="#RVA-RAW-VA" class="headerlink" title="RVA RAW VA"></a>RVA RAW VA</h2><p>所谓RAW 就是数据在文件中所在的位置 而RVA(Relative Virtual Addresses)则是程序中数据在内存中映射的位置与其文件头映射的位置的差值(线性地址) 大体一看 两者都是关于头的偏移 自然而然的会想到这两者是一样的 但其实不然 具体原因介绍到NT可选头的参数时再讲 简单来说就是padding的长度发生了改变 这里先上公式<br><code>RAW = RVA - (本节区)RVA + (本节区)PointerToRawData</code><br>    –摘自逆核<br>具体的应用下面会做解释<br>当然也有不匹配这个公式的情况发生(这个等下一篇再补充吧 现在还没碰到233)<br>VA就是没有”相对”这个概念 即数据映射到内存中的虚拟地址</p>
 <h2 id="PE分布以及某些部分的介绍以及说明"><a href="#PE分布以及某些部分的介绍以及说明" class="headerlink" title="PE分布以及某些部分的介绍以及说明"></a>PE分布以及某些部分的介绍以及说明</h2><p>这边就放一张基本被看烂的图片吧233<br><img src="/2018/03/21/关于pe结构的理解(一)/images/1521647274486.png" alt=""><br>请注意 并不是所有的PE文件都只有这三个节区 这里不过只是一个例子而已<br>那么这里就先来逐一粗略介绍各个段落的作用</p>
 <h3 id="DOS头"><a href="#DOS头" class="headerlink" title="DOS头"></a>DOS头</h3><p><img src="/2018/03/21/关于pe结构的理解(一)/images/1521710421257.png" alt=""><br>还是摘自逆核<br>这个东西没啥用..不过是历史来的累赘罢了..<br>除了第一个魔数之外 最有用的就是最后一个参数 它里面存着NT头的偏移</p>
