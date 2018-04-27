@@ -6,18 +6,23 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://yoursite.com">
-  <title>Archives | Ch1p&#39;s blog</title>
+  <title>关于堆的理解(持续更新) | Ch1p&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="废萌爱好者 起步binner">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Ch1p&#39;s blog">
-<meta property="og:url" content="http://yoursite.com/archives/index.html">
+  <meta name="description" content="前话这一个多月真是经历了很多事..我也开始pwn入门了这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新有错误也会及时订正">
+<meta name="keywords" content="linux,pwn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于堆的理解(持续更新)">
+<meta property="og:url" content="http://yoursite.com/2018/04/27/关于堆的理解/index.html">
 <meta property="og:site_name" content="Ch1p&#39;s blog">
-<meta property="og:description" content="废萌爱好者 起步binner">
+<meta property="og:description" content="前话这一个多月真是经历了很多事..我也开始pwn入门了这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新有错误也会及时订正">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/1524457408592.png">
+<meta property="og:image" content="http://yoursite.com/images/1524457415484.png">
+<meta property="og:updated_time" content="2018-04-27T12:14:41.376Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Ch1p&#39;s blog">
-<meta name="twitter:description" content="废萌爱好者 起步binner">
+<meta name="twitter:title" content="关于堆的理解(持续更新)">
+<meta name="twitter:description" content="前话这一个多月真是经历了很多事..我也开始pwn入门了这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新有错误也会及时订正">
+<meta name="twitter:image" content="http://yoursite.com/images/1524457408592.png">
   
     <link rel="alternative" href="/atom.xml" title="Ch1p&#39;s blog" type="application/atom+xml">
   
@@ -149,36 +154,63 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-关于堆的理解" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2018" class="archive-year">2018</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2018/04/27/关于堆的理解/" class="archive-article-date">
-  	<time datetime="2018-04-27T12:08:24.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-27</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/04/27/关于堆的理解/">关于堆的理解(持续更新)</a>
+    <h1 class="article-title" itemprop="name">
+      关于堆的理解(持续更新)
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/2018/04/27/关于堆的理解/" class="archive-article-date">
+  	<time datetime="2018-04-27T12:08:24.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-27</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="前话"><a href="#前话" class="headerlink" title="前话"></a>前话</h3><p>这一个多月真是经历了很多事..我也开始pwn入门了<br>这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新<br>有错误也会及时订正<br><a id="more"></a></p>
+<h2 id="chunk"><a href="#chunk" class="headerlink" title="chunk"></a>chunk</h2><p>首先从chunk说起<br><img src="../../../../images/1524457408592.png" alt="Alt text"><br><img src="../../../../images/1524457415484.png" alt="Alt text"><br>从网上盗了两张图来<br>上面是已经分配的chunk 下面则是在bin中的chunk<br>我们可以从各个部分的用处入手 这样有助于更好地理解堆</p>
+<h3 id="prev-size"><a href="#prev-size" class="headerlink" title="prev_size"></a>prev_size</h3><p>prev_size的内容就是在虚拟地址下上一个堆块的大小。用处在于当这个chunk被free时，假如上一个chunk是处于空闲状态，可以直接通过prev_size来找到上一个chunk的位置，就可以用来合并chunk.</p>
+<h3 id="size"><a href="#size" class="headerlink" title="size"></a>size</h3><p>size里的值为在当前chunk的大小。这里需要注意的是，每一个chunk的大小都是8的倍数，也就是说后三位其实是完全没用的。 那么在linux下，为了不浪费这些空间，就将这三位变成了三个标志位。N位代表着这个这个堆块是不是主分配区，M位代表着这个chunk是不是用mmap映射来的，而P位则代表上一个chunk是否空闲。</p>
+<h3 id="fd"><a href="#fd" class="headerlink" title="fd"></a>fd</h3><p>fd里的值为在bin里上一个chunk的指针</p>
+<h3 id="bk"><a href="#bk" class="headerlink" title="bk"></a>bk</h3><p>bk里的值为在bin里下一个chunk的指针</p>
+<h3 id="fd-nextsize-only-in-largebins"><a href="#fd-nextsize-only-in-largebins" class="headerlink" title="fd_nextsize(only in largebins)"></a>fd_nextsize(only in largebins)</h3><p>在largebin中由于每一个bin里的大小并不是完全相等，所以就有可能连续几个chunk都是相同的大小。为了加速遍历，就有了这一个指针，指向下一个大小的chunk。</p>
+<h3 id="bk-nextsize-only-in-largebins"><a href="#bk-nextsize-only-in-largebins" class="headerlink" title="bk_nextsize(only in largebins)"></a>bk_nextsize(only in largebins)</h3><p>基本同上，就指向上一个大小的chunk咯。</p>
+<h3 id="一些助于理解的补充"><a href="#一些助于理解的补充" class="headerlink" title="一些助于理解的补充"></a>一些助于理解的补充</h3><p>如上图所示，chunk分为被使用和不被使用的。比如fd和bk指针，若在被使用的chunk中，这两个值是完全没有用的。所以在被使用的chunk中，这两个值就作为给用户的区域。<br>再比如prev_size。这个值仅仅在虚拟地址连续的上一个chunk是空闲的时候才有用。所以当上一个chunk不空闲的时候，也能被上一个chunk给使用。</p>
+<h2 id="bins"><a href="#bins" class="headerlink" title="bins"></a>bins</h2><p>为什么会有bin这个概念呢？其实也很好理解。<br>一个进程假如需要一段堆空间，假如每次都要跟操作系统进行交互，那岂不是很不妙，疯狂在ring0和ring3下进行切换。<br>那么实际上操作系统会做什么呢？<br>简单来说，malloc有一个阙值假如你第一次申请分配的空间超过了这个阙值(128k)，那么系统就会直接通过mmap映射给用户，最后就用ummap解除映射。<br>假如不到这个阙值的话，那么系统就会首先分出一块连续地址空间，然后通过对free后的chunk进行管理，这样就会快上许多。<br>那么用来管理chunk的东西，我们就将其称之为bin。</p>
+<p>根据大小，bin分为smallbin,largebin<br>还有fastbin 和 unsortedbin<br>由于没认真看过malloc源码，我也不敢说太多东西..这里就想到什么写什么了</p>
+<ol>
+<li>fastbin是一个单项链表，bin中存储着最后一个chunk的指针。其中chunk的大小比较小，x86下为0x10 - 0x50 x64下为0x20 - 0x100。通过fd指针可以遍历整个链表。</li>
+<li>在其他的bin中都是用双向链表链接。保存着一个链表的头尾指针。</li>
+<li>largebin里面是由大到小排序</li>
+<li>在某种特殊情况下(回收一块比较大的内存，且当其合并了相邻空闲的chunk后的大小大于阙值的时候)，会将多于阙值的大小返还给系统，并将阙值提高到合并后的chunk的大小。</li>
+<li>为防止被回收，fastbin的p位不置0。</li>
+<li>任何在topchunk附近的空闲chunk都会被回收。</li>
+</ol>
+<h2 id="一些堆的利用"><a href="#一些堆的利用" class="headerlink" title="一些堆的利用"></a>一些堆的利用</h2><h3 id="1-double-free"><a href="#1-double-free" class="headerlink" title="1.double free"></a>1.double free</h3><p>double free，顾名思义，将一块chunk free两次。<br>double free的危害都有啥？<br>我们知道，free就是将一个chunk按照它的大小放在bin中,并且在其中以链表的形式连接起来。那我多free一次又何妨？<br>就是因为它是用链表的形式组合起来的，每一次将一个chunk分配出去后，bin中的尾指针数据就应该更新。那通过什么更新？当然是分配出去的这个chunk里面所填写的fd指针。而malloc过一次的chunk你是可以将其中的fd指针给修改的，那么当其再一次malloc的时候，就会将你修改后的fd指针指向的那块东西当做chunk分配给你了。那你岂不是就可以为所欲为了？<br>改GOT表！<br>疯狂leak内存。<br>Dynelf…<br>但是free过后，下一个chunk的p位不就置0了吗，你咋double free?<br>特殊情况来啦:fastbin。<br>为了防止被合并，fastbin就有一个特殊的机制，即使free后，下一位的chunk的p位也不置0，辣么我们就可以为所欲为啦！<br>需要注意的是，</p>
+<ol>
+<li>free的对象切记不要在topchunk旁边，不然你是fastbin也得死。</li>
+<li>即使是fastbin也是有检查的。就是不能连续两次free同一块内存空间，只要你间隔一个再进行free就好啦。</li>
+<li>目标空间里的size位要满足你malloc的辣个size。(最简单的fake chunk了吧)</li>
+</ol>
+<h3 id="2-UAF-use-after-free"><a href="#2-UAF-use-after-free" class="headerlink" title="2.UAF(use after free)"></a>2.UAF(use after free)</h3><p>这个其实hin简单。<br>就是记得不要出现Dangling pointer就好了。<br>那么这个又有什么用呢？<br>基本上用这种东西的时候，这个chunk里都有一个函数指针。<br>那么就可以直接改掉那个函数指针，直接利用一发就好啦！</p>
+<h3 id="3-unlink"><a href="#3-unlink" class="headerlink" title="3.unlink"></a>3.unlink</h3><p>unlink这个被各种称为”简单”的利用..我想了半天…<br>但也是因为有这样想过，我才理了一遍对堆的理解。嘛..有利有弊嘛。<br>这里要先说一个思想，也是我理了半天才理清楚的东西:<br><code>unlink重要的是过程！而不是结果！</code><br>这个怎么说呢？<br>首先，我们要知道unlink是啥。<br>从bin中将一个chunk取下来嘛！<br>那想象一下，假如是你写unlink，你要怎么做？<br>由于是双向链表，你肯定要进行这样的操作:<br>p -&gt; fd -&gt; bk = p -&gt; bk;<br>p -&gt; bk -&gt; fd = p -&gt; fd;<br>这样才算把一个chunk给取下来。<br>那么，假如我们可以控制一个chunk的fd和bk指针，再改掉它的p位，不就可以将两个值，通过本身的unlink机制，写在两个地方了吗？<br>假如可以直接这样利用，那无疑是很好的。只要你保证你fake的指针值没啥问题(有被映射)，就可以造成近似的任意位置写(反正一般来说也是写指针呀)<br>但是不幸的是，在现在这是有条件的。<br>简单来说，他要判断<br><code>p -&gt; fd -&gt; bk == p 
+  p -&gt; bk -&gt; fd == p</code><br>通过这两个判断后，才会执行之前的过程。<br>那么当题目想考你unlink的时候，首先会有一个堆溢出，其次有一个全局数组储存了你每次malloc的地址，那么你就可以在先在申请的chunk中伪造一块chunk,fake_fd内写入那个数组中你所要写的那个chunk的地址 - 0x18(x64下，bk相对于chunk头的偏移)，在fake_bk下写入地址 - 0x10，这样就可以绕过检查。<br>这样之后，在那个数组中就会将这个数组 - 0x18的地址写入其中(因为上面有赋值操作，且最后一步是将p -&gt; fd写入地址，而伪造的fake_fd就为地址 - 0x18)<br>有了这个就基本上可以为所欲为啦！基本上都会有堆这个数组的一些操作，比如查看目标地址上的值呀，再比如更改目标地址的东西呀..这里你就可以直接将这个数组后面的值给覆盖掉了，Do everything you want to do!</p>
+<h2 id="后话"><a href="#后话" class="headerlink" title="后话"></a>后话</h2><p>对于pwn的理论的研究，我其实还是蛮乐在其中的。<br>但是对于写poc,调dbg…<br>真是太麻烦了！</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -194,137 +226,106 @@
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/2018/04/27/关于堆的理解/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2018/04/09/内存机制及其相关内容(x86)/" class="archive-article-date">
-  	<time datetime="2018-04-09T04:05:24.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-09</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2018/04/09/内存机制及其相关内容(x86)/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">内存机制及其相关内容(x86)</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/04/09/内存机制及其相关内容(x86)/">内存机制及其相关内容(x86)</a>
-    </h1>
+  
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">windows</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">system</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2018/04/04/关于pe结构的理解(二)/" class="archive-article-date">
-  	<time datetime="2018-04-04T15:59:32.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-04</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/04/04/关于pe结构的理解(二)/">关于PE结构的理解(二)</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">windows</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2018/03/21/关于pe结构的理解(一)/" class="archive-article-date">
-  	<time datetime="2018-03-21T14:59:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-21</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/03/21/关于pe结构的理解(一)/">关于pe结构的理解(一)</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">windows</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
   
-  
-    </div></section>
-  
-
-    
 
 
           </div>
@@ -347,8 +348,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,
