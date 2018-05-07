@@ -18,7 +18,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/1524457408592.png">
 <meta property="og:image" content="http://yoursite.com/images/1524457415484.png">
-<meta property="og:updated_time" content="2018-04-27T12:14:41.376Z">
+<meta property="og:updated_time" content="2018-05-07T06:54:08.920Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="关于堆的理解(持续更新)">
 <meta name="twitter:description" content="前话这一个多月真是经历了很多事..我也开始pwn入门了这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新有错误也会及时订正">
@@ -198,6 +198,7 @@
 <li>free的对象切记不要在topchunk旁边，不然你是fastbin也得死。</li>
 <li>即使是fastbin也是有检查的。就是不能连续两次free同一块内存空间，只要你间隔一个再进行free就好啦。</li>
 <li>目标空间里的size位要满足你malloc的辣个size。(最简单的fake chunk了吧)</li>
+<li>这边值得注意的是，在64位下，只检查最低的四个字节。(周末做题才发现的..感谢v爷爷)</li>
 </ol>
 <h3 id="2-UAF-use-after-free"><a href="#2-UAF-use-after-free" class="headerlink" title="2.UAF(use after free)"></a>2.UAF(use after free)</h3><p>这个其实hin简单。<br>就是记得不要出现Dangling pointer就好了。<br>那么这个又有什么用呢？<br>基本上用这种东西的时候，这个chunk里都有一个函数指针。<br>那么就可以直接改掉那个函数指针，直接利用一发就好啦！</p>
 <h3 id="3-unlink"><a href="#3-unlink" class="headerlink" title="3.unlink"></a>3.unlink</h3><p>unlink这个被各种称为”简单”的利用..我想了半天…<br>但也是因为有这样想过，我才理了一遍对堆的理解。嘛..有利有弊嘛。<br>这里要先说一个思想，也是我理了半天才理清楚的东西:<br><code>unlink重要的是过程！而不是结果！</code><br>这个怎么说呢？<br>首先，我们要知道unlink是啥。<br>从bin中将一个chunk取下来嘛！<br>那想象一下，假如是你写unlink，你要怎么做？<br>由于是双向链表，你肯定要进行这样的操作:<br>p -&gt; fd -&gt; bk = p -&gt; bk;<br>p -&gt; bk -&gt; fd = p -&gt; fd;<br>这样才算把一个chunk给取下来。<br>那么，假如我们可以控制一个chunk的fd和bk指针，再改掉它的p位，不就可以将两个值，通过本身的unlink机制，写在两个地方了吗？<br>假如可以直接这样利用，那无疑是很好的。只要你保证你fake的指针值没啥问题(有被映射)，就可以造成近似的任意位置写(反正一般来说也是写指针呀)<br>但是不幸的是，在现在这是有条件的。<br>简单来说，他要判断<br><code>p -&gt; fd -&gt; bk == p 
