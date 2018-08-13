@@ -18,7 +18,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/1524457408592.png">
 <meta property="og:image" content="http://yoursite.com/images/1524457415484.png">
-<meta property="og:updated_time" content="2018-06-05T13:27:09.118Z">
+<meta property="og:updated_time" content="2018-08-13T10:26:08.176Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="关于堆的理解(持续更新)">
 <meta name="twitter:description" content="前话这一个多月真是经历了很多事..我也开始pwn入门了这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新有错误也会及时订正">
@@ -215,7 +215,7 @@
 <p>然后关于vtable，相信学过c++的人对于vtable这个概念并不陌生。在这里我只能给个猜测，libc源码中的vtables是来自各个系统自带的一些类的vtable，然后将这些东西管理在一起，用chain这个指针串成链表。</p>
 <p>所以平常我们用的那些文件函数都是对vtable里面函数的封装(后面利用会再次提到)。</p>
 <p>接下来说一下一<strong>unsorttedbin attack</strong>。</p>
-<p>说这么玄乎，其实这个攻击就是在一个情况:当unsorttedbin只剩最后一个chunk的时候，它会将这个main_arena的top值(main_arena + 88)写入这个chunk的bk指针指向的地址(我猜测原本只是为了初始化bin里面的fd和bk),这里没有检查。但由于这里要写的值是一个固定值，所以..用处比较少。一般用来改掉fastbin的maxsize，利用fastbin attack。但在这里，我们用来修改IO_list_all的值(也就是IO_FILE的头)。这里是为了触发这么一个机制：当IO_list_all这个指针对应的结构体不合法的时候，它会通过这个结构体的0x68偏移(chain)来继续向下遍历，而当我们将它的值改成unsortedbin的地址是，我们知道bins是一个数组，也就是所有的bins都是在一个线性地址下，那么当前地址+0x68的指针正好对应着smallbin的第6个成员的bk，也就是大小为0x60的smallbin的地址，所以我们就可以在smallbin 0x60大小的位置伪造一个IO_file结构体。</p>
+<p>说这么玄乎，其实这个攻击就是在一个情况:<del>当unsortedbin只剩最后一个chunk的时候，它会将这个main_arena的top值(main_arena + 88)写入这个chunk的bk指针指向的地址.(我猜测原本只是为了初始化bin里面的fd和bk)</del> 并不是..这里是为了维护一个双向链表。所以就算不是只剩一个，只要分配的是unsortedbin的尾chunk就会造成这样的效果。这里没有检查。但由于这里要写的值是一个固定值，所以..用处比较少。一般用来改掉fastbin的maxsize，利用fastbin attack。但在这里，我们用来修改IO_list_all的值(也就是IO_FILE的头)。这里是为了触发这么一个机制：当IO_list_all这个指针对应的结构体不合法的时候，它会通过这个结构体的0x68偏移(chain)来继续向下遍历，而当我们将它的值改成unsortedbin的地址是，我们知道bins是一个数组，也就是所有的bins都是在一个线性地址下，那么当前地址+0x68的指针正好对应着smallbin的第6个成员的bk，也就是大小为0x60的smallbin的地址，所以我们就可以在smallbin 0x60大小的位置伪造一个IO_file结构体。</p>
 <p>伪造一个结构体又能如何呢？对文件进行操作的时候，那些文件函数都是调用vtable中的函数，而参数是调用结构体中的参数，所以我们只需要伪造这些参数，在理论上就可以getshell。</p>
 <p>在glibc 2.23版本以前，vtable这个虚函数表的指针是可以被修改的，所以你就可以把这个指针值改成可控区域的地址，伪造一个table就行。</p>
 <p>但是在2.24及以后的版本，这些vtable被单独放在了一个节区上，并且有对vtable的值进行检查，地址值只能在这个段上。所以只能用这个段里面的vtable来进行攻击。</p>
@@ -308,6 +308,15 @@
 
   
 <nav id="article-nav">
+  
+    <a href="/2018/08/13/看malloc源码学到的一些细节/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          看malloc源码学到的一些细节
+        
+      </div>
+    </a>
   
   
     <a href="/2018/04/09/内存机制及其相关内容(x86)/" id="article-nav-older" class="article-nav-link-wrap">
@@ -437,7 +446,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">随笔</a>
+                <a href="javascript:void(0)" class="js-tag color1">linux</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">pwn</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -446,14 +459,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">system</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">linux</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">pwn</a>
               </li>
             
             <div class="clearfix"></div>
