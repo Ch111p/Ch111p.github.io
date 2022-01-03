@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"gitalk","active":null,"storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}}},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言： ​	上学期临近期末开始，我开了一个密码学的坑，(其实暑假就说要学密码学，但一直没咋动就是&#x3D;-&#x3D;一定是我太忙了对！)看的是Dan Boneh的密码学网课。差不多在开学一周将这个课程看完了，并且做了Course上的CodeTest和Exam。收益还是蛮多的，比如hgame出了题目233333。现在还差一个finalexam没做&#x3D;-&#x3D;由于前段时间天天摸鱼，没啥时间去搞了。今天摸鱼结束，寻思着要不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Crypto学习总结">
+<meta property="og:url" content="http://yoursite.com/2019/03/26/Crypto%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Ch1p&#39;s blog">
+<meta property="og:description" content="前言： ​	上学期临近期末开始，我开了一个密码学的坑，(其实暑假就说要学密码学，但一直没咋动就是&#x3D;-&#x3D;一定是我太忙了对！)看的是Dan Boneh的密码学网课。差不多在开学一周将这个课程看完了，并且做了Course上的CodeTest和Exam。收益还是蛮多的，比如hgame出了题目233333。现在还差一个finalexam没做&#x3D;-&#x3D;由于前段时间天天摸鱼，没啥时间去搞了。今天摸鱼结束，寻思着要不">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-03-25T18:30:00.000Z">
+<meta property="article:modified_time" content="2022-01-03T04:27:31.941Z">
+<meta property="article:author" content="Ch1p">
+<meta property="article:tag" content="crypto">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2019/03/26/Crypto%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Crypto学习总结 | Ch1p's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ch1p's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/Crypto%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.jpg">
+      <meta itemprop="name" content="Ch1p">
+      <meta itemprop="description" content="废萌爱好者 起步binner">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ch1p's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Crypto学习总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-03-26 02:30:00" itemprop="dateCreated datePublished" datetime="2019-03-26T02:30:00+08:00">2019-03-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-03 12:27:31" itemprop="dateModified" datetime="2022-01-03T12:27:31+08:00">2022-01-03</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言：">前言：</h3>
+<p>​	上学期临近期末开始，我开了一个密码学的坑，(其实暑假就说要学密码学，但一直没咋动就是=-=一定是我太忙了对！)看的是Dan Boneh的密码学网课。差不多在开学一周将这个课程看完了，并且做了Course上的CodeTest和Exam。收益还是蛮多的，比如hgame出了题目233333。现在还差一个finalexam没做=-=由于前段时间天天摸鱼，没啥时间去搞了。今天摸鱼结束，寻思着要不做个整理，于是就用了四个小时，草草刷了一遍全部的课程，并将一些概念整理了一遍。这里不会涉及太细致的东西，只是类似于课堂笔记而已233</p>
+<span id="more"></span>
+<h3 id="内容：">内容：</h3>
+<ul>
+<li>完备安全定义： 对一个特定的密文，它由明文空间中任意一个明文加密而来的概率相等。但是这很难实现，若要使这个条件成立，即key的长度至少要和密文长度相等。引申出流密码的概念。</li>
+<li>PRG: pseudorandom generator. PRG({0, 1}^s) -&gt; {0, 1}^n</li>
+<li>PRG随机性的定义: 知道前n-1位的值，知道下一位值的概率为一个可忽略的值。</li>
+<li>流密码：PRG(key) xor Cipher</li>
+<li>PRP(pseudorandom permutation)(K,X) -&gt; X, PRF(pseudorandom function)(K,X) -&gt; Y</li>
+<li>常见的PRP: AES，DES</li>
+<li>简述AES流程：将key通过key_expansion出11个key，前十轮都做一次ByteSub, ShiftRow 以及MixColumn,  再与key做xor.最后一轮没有MixColunmn, 而是直接与key做xor</li>
+<li>语义安全：定义一个挑战，传入两个不同的message，服务端传回E(message)，如果是语义安全的，那么对于挑战者来说，adv应为0。</li>
+<li>ECB模式：对于每一组都做一个相同的PRP，ECB模式不符合语义安全，且adv为1</li>
+<li>CPA安全：即在语义安全的定义上多了两点：
+<ul>
+<li>message可以相同</li>
+<li>查询次数可以为多次</li>
+</ul>
+</li>
+<li>CBC模式：给定IV, 每一组的加密结果作为下一组的IV，其符合CPA安全(IV不可预测)</li>
+<li>CTR模式：给定IV，做一个PRF(key, IV)，结果值与message做xor</li>
+<li>MAC：由两个func定义而来。S(k, m) -&gt; t和V(k, m, t) -&gt; True/False</li>
+<li>MAC安全：定义一个挑战，传入n个不同的message，服务端传回MAC(message)，最后，挑战者要传入一对正确的(M,t)。要求为最后的M与之前任意的message不同。</li>
+<li>CCA安全：在CPA安全的定义上，多了两点：
+<ul>
+<li>服务端不仅会加密明文，还会解密你给定的密文。</li>
+<li>给定的密文与之前加密明文的返回应不相同。</li>
+</ul>
+</li>
+<li>Merkle Puzzles：不凭借第三方，通过对称密码学完成的交换密钥体制。简单来说，就是利用一个PRP(puzzle # xi||Ki,ki)，ki在一个可爆破的范围内，然后Alice发送i个puzzle给Bob，Bob从puzzle中任意选一个，通过爆破k获得xi与Ki，再将xi发回Alice。随后，Alice就可以根据xi找到Ki(因为xi与Ki都是Alice生成的)，Ki就成了双方的密钥。对于攻击者(中间人)来说，破解时间为O(n^2)。但是这种方法太不实用了。</li>
+<li>Diffle-Hellman：(g^a)^b  ==  (g^b)^a mod p。安全取决为：已知g ^ a 和 g ^ b，能否算出(g ^ a) ^ b(best solotion:O^1/3)</li>
+<li>数论知识跳过</li>
+<li>陷门函数：(G, F, F^-1)
+<ul>
+<li>G：生成一对(PK, SK)</li>
+<li>F: (m, PK) -&gt; S</li>
+<li>F^-1:(S, SK) -&gt; m</li>
+</ul>
+</li>
+</ul>
+<h3 id="写在最后">写在最后</h3>
+<p>​	算是初步入门了一下密码学吧=-=但是我感觉现在的密码学水平只是相当于一个开发人员需要掌握的密码学知识，至于说安全人员需要掌握的密码学知识可比我现在的水平高多了。菜鸡还需要不断努力。但密码学深入也太可怕了…有生之年估计深不进去。平常打打CTF(的送分密码学)，偶尔心情愉悦看看数论(并不)应该就是我能做到的最高水平了233。但话说回来我还真只会一点点数论，啥时候面向CTF学一波数论？(开坑预警)</p>
+<p>​	想来一开始想学密码学，一是逆向中经常见到密码学相关，想着学完是不是就可以有很大的进步了，而且作为二进制手(是的我才不把自己定义成re手哼，因为我不会re嘻嘻嘻)，密码学，PWN，re都应该有所涉及。二来是密码学要断层了都=-=hgame要是没人出题就太真实了，就跟着辉神的大旗走了。现在回头看，要是要对前者有较大帮助，密码学要更深入才有可能，不然用途不大。而且Dan Boneh的这个课程其实还是从蛮高层的思维去讲的，所以帮助并不大。但多学点东西总不坏。后者算是圆满完成任务了吧？反正学弟未来可期2333</p>
+<p>​	那我也要加油了！</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/crypto/" rel="tag"># crypto</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/15/%E6%8A%A4%E7%BD%91%E6%9D%AFRERERE%E9%A2%98%E8%A7%A3/" rel="prev" title="护网杯RERERE题解">
+      <i class="fa fa-chevron-left"></i> 护网杯RERERE题解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/02/2021%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/" rel="next" title="2021年度总结">
+      2021年度总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AE%B9%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">内容：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="nav-number">3.</span> <span class="nav-text">写在最后</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ch1p"
+      src="/images/head.jpg">
+  <p class="site-author-name" itemprop="name">Ch1p</p>
+  <div class="site-description" itemprop="description">废萌爱好者 起步binner</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Ch111p" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Ch111p" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hduch1p@gmail.com" title="E-Mail → mailto:hduch1p@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oyiadin.github.io/" title="http:&#x2F;&#x2F;oyiadin.github.io" rel="noopener" target="_blank">oyiadin</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ckj123.com/" title="http:&#x2F;&#x2F;www.ckj123.com" rel="noopener" target="_blank">ckj123</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://li4n0.github.io/" title="http:&#x2F;&#x2F;li4n0.github.io" rel="noopener" target="_blank">Li4n0</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://arisxu.github.io/" title="http:&#x2F;&#x2F;arisxu.github.io" rel="noopener" target="_blank">Aris</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://vvv-347.space/" title="http:&#x2F;&#x2F;vvv-347.space&#x2F;" rel="noopener" target="_blank">vvv_347</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://veritas501.space/" title="http:&#x2F;&#x2F;veritas501.space" rel="noopener" target="_blank">veritas_501</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://mozhucy.cn/" title="http:&#x2F;&#x2F;mozhucy.cn&#x2F;" rel="noopener" target="_blank">MoZhuCY</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://120.79.211.91/" title="http:&#x2F;&#x2F;120.79.211.91" rel="noopener" target="_blank">C0ss4ck</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ch1p</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">33k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">30 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '43fe4f1af5be7f2c178a',
+      clientSecret: '64ff9432525e79002176f8e776f5227e3d802ed9',
+      repo        : 'Ch111p.github.io',
+      owner       : 'Ch111p',
+      admin       : ['Ch111p'],
+      id          : 'b8fa96b76cc0496b4935c2bbe032d07e',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

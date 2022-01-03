@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"gitalk","active":null,"storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}}},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="免责声明:我在写这篇文章的时候 对于编译 链接的具体过程并不能说是了解 只能将自己现在的理解写出来 有错概不负责 毕竟是我的博客嘛233">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于PE结构的理解(二)">
+<meta property="og:url" content="http://yoursite.com/2018/04/04/%E5%85%B3%E4%BA%8Epe%E7%BB%93%E6%9E%84%E7%9A%84%E7%90%86%E8%A7%A3(%E4%BA%8C)/index.html">
+<meta property="og:site_name" content="Ch1p&#39;s blog">
+<meta property="og:description" content="免责声明:我在写这篇文章的时候 对于编译 链接的具体过程并不能说是了解 只能将自己现在的理解写出来 有错概不负责 毕竟是我的博客嘛233">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/1522858503250.png">
+<meta property="og:image" content="http://yoursite.com/images/1522896955462.png">
+<meta property="og:image" content="http://yoursite.com/images/1522897017535.png">
+<meta property="og:image" content="http://yoursite.com/images/1522897043596.png">
+<meta property="og:image" content="http://yoursite.com/images/1522897056887.png">
+<meta property="og:image" content="http://yoursite.com/images/1522897254003.png">
+<meta property="og:image" content="http://yoursite.com/images/1522899503600.png">
+<meta property="og:image" content="http://yoursite.com/images/1522899540248.png">
+<meta property="article:published_time" content="2018-04-04T15:59:32.000Z">
+<meta property="article:modified_time" content="2022-01-03T04:27:31.943Z">
+<meta property="article:author" content="Ch1p">
+<meta property="article:tag" content="windows">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/1522858503250.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/04/04/%E5%85%B3%E4%BA%8Epe%E7%BB%93%E6%9E%84%E7%9A%84%E7%90%86%E8%A7%A3(%E4%BA%8C)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>关于PE结构的理解(二) | Ch1p's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ch1p's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/04/%E5%85%B3%E4%BA%8Epe%E7%BB%93%E6%9E%84%E7%9A%84%E7%90%86%E8%A7%A3(%E4%BA%8C)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.jpg">
+      <meta itemprop="name" content="Ch1p">
+      <meta itemprop="description" content="废萌爱好者 起步binner">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ch1p's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          关于PE结构的理解(二)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-04 23:59:32" itemprop="dateCreated datePublished" datetime="2018-04-04T23:59:32+08:00">2018-04-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-03 12:27:31" itemprop="dateModified" datetime="2022-01-03T12:27:31+08:00">2022-01-03</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>免责声明:我在写这篇文章的时候 对于编译 链接的具体过程并不能说是了解 只能将自己现在的理解写出来 有错概不负责 毕竟是我的博客嘛233</strong></p>
+<span id="more"></span>
+<h3 id="DLL导出API时的相关过程">DLL导出API时的相关过程</h3>
+<p>利用PEview,载入一个很常见的DLL:kernel32.dll 让我们看一下其中的东西<br>
+<img src="../../../../images/1522858503250.png" alt="Alt text"><br>
+这里我们可以看出来 其实DLL本身也是遵循PE结构的(废话) 所以DLL和EXE本质上其实可以算一个东西的233 之所以分开来 具体原因我也不懂…(陷入沉思)<br>
+之前的一篇文章 我们介绍了导入表 所谓导入表 就是在程序加载时 将加载后的API地址填入IAT中 从而实现跳转 那么这个地址是如何被确定的呢？跟导入一样 这里就要有一个导出的概念 可以想象 DLL中应该有具体的表单 里面存放着各个API的地址 然后通过一些索引可以找到相对应的API地址 下面就来具体解释这样的一个方法<br>
+在PEview中 我们可以看见关于导出的一个结构体 IMAGE_EXPORT_TABLE 从这里我们可以了解到导出的一些相关内容<br>
+<img src="../../../../images/1522896955462.png" alt="Alt text"><br>
+在这个结构体中 可以很清楚的发现里面记载了导出的函数的个数，函数名的个数 以及与函数相关的一些东西:Address，Name，Ordinal 这些就是我们索引时所需要的参数<br>
+同时我们也可以看到在左边的引导栏中也有EXPORT_XXXX字样 和这些索引是可以一一对应的<br>
+这里我们可以先看一下这些EXPORT_XXXX的数据<br>
+ENPT:<br>
+<img src="../../../../images/1522897017535.png" alt="Alt text"><br>
+EOT:<br>
+<img src="../../../../images/1522897043596.png" alt="Alt text"><br>
+EAT:<br>
+<img src="../../../../images/1522897056887.png" alt="Alt text"><br>
+ENPT所指向的东西:<br>
+<img src="../../../../images/1522897254003.png" alt="Alt text"><br>
+具体的作用会在下面展示 放在这里帮助后面理解<br>
+还记得导入表中有一个叫做INT的表单吗 在INT中 每一个单元都指向一个结构体 结构体由一个莫名其妙的&quot;数字&quot;以及函数名称组成 这就是在寻找API的时候所需要的参数(其实二者都可以单独寻找到API的地址 但是通过数字索引需要一些条件 这里先从通过名字寻找说起)</p>
+<blockquote>
+<ol>
+<li>ENPT中 我们可以看见 里面所有的数据都是指针 指向函数名 还有就是这里的函数名是根据ASCII顺序排列的 所以就可以通过二分法 找到相同函数名 并得到其的index</li>
+</ol>
+</blockquote>
+<ol start="2">
+<li>拿到index后 再进入EOT中 通过刚才的index 得到这个index所对应的值</li>
+<li>将从EOT中得到的值作为数组下标 从EAT中取出相对应的值 这个值就是API在DLL中的RVA了</li>
+</ol>
+<p>上面这些就是通过名字来找到地址的方法了 这个过程兴许比较生涩难懂 需要用心琢磨一遍才能记住 但我在理解的过程中就产生了这样一个问题:既然函数名是作为找到index 那为什么不直接将函数名和函数地址对应起来 而还需要一个ordinal呢？<br>
+答:因为有的API没有名字<br>
+那为什么有的API没有名字呢？<br>
+答:历史原因 毕竟存储一个数值和一串字符串需要的空间不是一个量级的 在以前内存资源辣么紧张…是吧 对于保证兼容性来说也是很吼的 于是这样一个过程就遗留了下来<br>
+那么这样不是会拖慢效率吗？<br>
+你能想到的微软也想到啦！这时候用&quot;数字&quot;(index)寻找API地址的方法就呼之欲出了 直接通过数字找到下标 拿到fla…呸 RVA 是不是非常的快！<br>
+但很不幸 这是有条件的<br>
+首先我们可以想到这样一个问题 在可执行文件中 IAT的那些数值 例如name,index这些数值 是什么时候确定的呢？<br>
+我认为 应该是在生成可执行文件进行链接的时候 将DLL中的一些参数直接写入进导入相关的表中 但具体过程我也不太清楚了hh<br>
+那么这里就会牵扯到一个问题 <strong>不同环境下 DLL的版本号是可能不同的！而可执行文件中的内容在第一次生成后就确定了</strong><br>
+假如在更新了以后 DLL中的API增添/减少了 那么可以想象 其对应的index是会被改变的 那么直接通过数组下标得到函数地址的方法就不可行了 这时候就得乖乖的通过名称来查找了<br>
+再往外拓展 我们自己也可以写DLL 所以不仅仅是针对系统的DLL导出API 当我们编写函数并将其导出的时候 过程应该也是这样的 这能牵扯出什么问题呢？希望如果你在读这个文章时可以思考一下<br>
+那还有一个问题 程序是如何知道加载的DLL的版本是否相同呢？<br>
+这个…<br>
+我也不太清楚 毕竟方法可能有很多 如可能存储了hash值用来比较？在rsrc段中我们可以看见一个东西<br>
+<img src="../../../../images/1522899503600.png" alt="Alt text"><br>
+而内容是这样的<br>
+<img src="../../../../images/1522899540248.png" alt="Alt text"><br>
+猜测是跟这个有关系 具体是如何比对的 希望有大手子知道后可以联系我告诉我怎么做 但这不影响我们对于EAT基本的了解 所以就不做深究了</p>
+<h3 id="写在最后">写在最后</h3>
+<p>发一个牢骚<br>
+<del>啥是windows安全啊 windows的坑真的多 要知道的细节又多又长 但我不知道现在怎么向安全靠拢啊(雾<br>
+万物皆pwn<br>
+写完这篇文章后突然想到一个问题 导入函数绑定这个东西好像没提到？我好像也没见到这个 可能是要手动用工具绑定？<br>
+好久没做题了re题 但是要学的东西还有好多 这两天抽空做一次吧 不然都忘了自己是bin选手了<br>
+所以啥是windows安全啊…</del></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/windows/" rel="tag"># windows</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/21/%E5%85%B3%E4%BA%8Epe%E7%BB%93%E6%9E%84%E7%9A%84%E7%90%86%E8%A7%A3(%E4%B8%80)/" rel="prev" title="关于pe结构的理解(一)">
+      <i class="fa fa-chevron-left"></i> 关于pe结构的理解(一)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/09/%E5%86%85%E5%AD%98%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9(x86)/" rel="next" title="内存机制及其相关内容(x86)">
+      内存机制及其相关内容(x86) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#DLL%E5%AF%BC%E5%87%BAAPI%E6%97%B6%E7%9A%84%E7%9B%B8%E5%85%B3%E8%BF%87%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">DLL导出API时的相关过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="nav-number">2.</span> <span class="nav-text">写在最后</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ch1p"
+      src="/images/head.jpg">
+  <p class="site-author-name" itemprop="name">Ch1p</p>
+  <div class="site-description" itemprop="description">废萌爱好者 起步binner</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Ch111p" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Ch111p" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hduch1p@gmail.com" title="E-Mail → mailto:hduch1p@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oyiadin.github.io/" title="http:&#x2F;&#x2F;oyiadin.github.io" rel="noopener" target="_blank">oyiadin</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ckj123.com/" title="http:&#x2F;&#x2F;www.ckj123.com" rel="noopener" target="_blank">ckj123</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://li4n0.github.io/" title="http:&#x2F;&#x2F;li4n0.github.io" rel="noopener" target="_blank">Li4n0</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://arisxu.github.io/" title="http:&#x2F;&#x2F;arisxu.github.io" rel="noopener" target="_blank">Aris</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://vvv-347.space/" title="http:&#x2F;&#x2F;vvv-347.space&#x2F;" rel="noopener" target="_blank">vvv_347</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://veritas501.space/" title="http:&#x2F;&#x2F;veritas501.space" rel="noopener" target="_blank">veritas_501</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://mozhucy.cn/" title="http:&#x2F;&#x2F;mozhucy.cn&#x2F;" rel="noopener" target="_blank">MoZhuCY</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://120.79.211.91/" title="http:&#x2F;&#x2F;120.79.211.91" rel="noopener" target="_blank">C0ss4ck</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ch1p</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">33k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">30 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '43fe4f1af5be7f2c178a',
+      clientSecret: '64ff9432525e79002176f8e776f5227e3d802ed9',
+      repo        : 'Ch111p.github.io',
+      owner       : 'Ch111p',
+      admin       : ['Ch111p'],
+      id          : '48c413e1c4402b63d17b58dad19f7d16',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

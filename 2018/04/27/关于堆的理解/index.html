@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"gitalk","active":null,"storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}}},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前话 这一个多月真是经历了很多事…我也开始pwn入门了 这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新 有错误也会及时订正">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于堆的理解(持续更新)">
+<meta property="og:url" content="http://yoursite.com/2018/04/27/%E5%85%B3%E4%BA%8E%E5%A0%86%E7%9A%84%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Ch1p&#39;s blog">
+<meta property="og:description" content="前话 这一个多月真是经历了很多事…我也开始pwn入门了 这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新 有错误也会及时订正">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/1524457408592.png">
+<meta property="og:image" content="http://yoursite.com/images/1524457415484.png">
+<meta property="article:published_time" content="2018-04-27T12:08:24.000Z">
+<meta property="article:modified_time" content="2022-01-03T04:27:31.943Z">
+<meta property="article:author" content="Ch1p">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/1524457408592.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/04/27/%E5%85%B3%E4%BA%8E%E5%A0%86%E7%9A%84%E7%90%86%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>关于堆的理解(持续更新) | Ch1p's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ch1p's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/27/%E5%85%B3%E4%BA%8E%E5%A0%86%E7%9A%84%E7%90%86%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.jpg">
+      <meta itemprop="name" content="Ch1p">
+      <meta itemprop="description" content="废萌爱好者 起步binner">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ch1p's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          关于堆的理解(持续更新)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-27 20:08:24" itemprop="dateCreated datePublished" datetime="2018-04-27T20:08:24+08:00">2018-04-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-03 12:27:31" itemprop="dateModified" datetime="2022-01-03T12:27:31+08:00">2022-01-03</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>7.1k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前话">前话</h3>
+<p>这一个多月真是经历了很多事…我也开始pwn入门了<br>
+这里是我对堆的一些理解，也会写现在了解的一些利用方式 (应该)会持续更新<br>
+有错误也会及时订正</p>
+<span id="more"></span>
+<h2 id="chunk">chunk</h2>
+<p>首先从chunk说起<br>
+<img src="../../../../images/1524457408592.png" alt="Alt text"><br>
+<img src="../../../../images/1524457415484.png" alt="Alt text"><br>
+从网上盗了两张图来<br>
+上面是已经分配的chunk 下面则是在bin中的chunk<br>
+我们可以从各个部分的用处入手 这样有助于更好地理解堆</p>
+<h3 id="prev-size">prev_size</h3>
+<p>prev_size的内容就是在虚拟地址下上一个堆块的大小。用处在于当这个chunk被free时，假如上一个chunk是处于空闲状态，可以直接通过prev_size来找到上一个chunk的位置，就可以用来合并chunk.</p>
+<h3 id="size">size</h3>
+<p>size里的值为在当前chunk的大小。这里需要注意的是，每一个chunk的大小都是8的倍数，也就是说后三位其实是完全没用的。 那么在linux下，为了不浪费这些空间，就将这三位变成了三个标志位。N位代表着这个这个堆块是不是主分配区，M位代表着这个chunk是不是用mmap映射来的，而P位则代表上一个chunk是否空闲。</p>
+<h3 id="fd">fd</h3>
+<p>fd里的值为在bin里上一个chunk的指针</p>
+<h3 id="bk">bk</h3>
+<p>bk里的值为在bin里下一个chunk的指针</p>
+<h3 id="fd-nextsize-only-in-largebins">fd_nextsize(only in largebins)</h3>
+<p>在largebin中由于每一个bin里的大小并不是完全相等，所以就有可能连续几个chunk都是相同的大小。为了加速遍历，就有了这一个指针，指向下一个大小的chunk。</p>
+<h3 id="bk-nextsize-only-in-largebins">bk_nextsize(only in largebins)</h3>
+<p>基本同上，就指向上一个大小的chunk咯。</p>
+<h3 id="一些助于理解的补充">一些助于理解的补充</h3>
+<p>如上图所示，chunk分为被使用和不被使用的。比如fd和bk指针，若在被使用的chunk中，这两个值是完全没有用的。所以在被使用的chunk中，这两个值就作为给用户的区域。<br>
+再比如prev_size。这个值仅仅在虚拟地址连续的上一个chunk是空闲的时候才有用。所以当上一个chunk不空闲的时候，也能被上一个chunk给使用。</p>
+<h2 id="bins">bins</h2>
+<p>为什么会有bin这个概念呢？其实也很好理解。<br>
+一个进程假如需要一段堆空间，假如每次都要跟操作系统进行交互，那岂不是很不妙，疯狂在ring0和ring3下进行切换。<br>
+那么实际上操作系统会做什么呢？<br>
+简单来说，malloc有一个阙值假如你第一次申请分配的空间超过了这个阙值(128k)，那么系统就会直接通过mmap映射给用户，最后就用ummap解除映射。<br>
+假如不到这个阙值的话，那么系统就会首先分出一块连续地址空间，然后通过对free后的chunk进行管理，这样就会快上许多。<br>
+那么用来管理chunk的东西，我们就将其称之为bin。</p>
+<p>根据大小，bin分为smallbin,largebin<br>
+还有fastbin 和 unsortedbin<br>
+由于没认真看过malloc源码，我也不敢说太多东西…这里就想到什么写什么了</p>
+<ol>
+<li>fastbin是一个单项链表，bin中存储着最后一个chunk的指针。其中chunk的大小比较小，x86下为0x10 - 0x50 x64下为0x20 - 0x100。通过fd指针可以遍历整个链表。</li>
+<li>在其他的bin中都是用双向链表链接。保存着一个链表的头尾指针。</li>
+<li>largebin里面是由大到小排序</li>
+<li>在某种特殊情况下(回收一块比较大的内存，且当其合并了相邻空闲的chunk后的大小大于阙值的时候)，会将多于阙值的大小返还给系统，并将阙值提高到合并后的chunk的大小。</li>
+<li>为防止被回收，fastbin的p位不置0。</li>
+<li>任何在topchunk附近的空闲chunk都会被回收。</li>
+</ol>
+<h2 id="一些堆的利用">一些堆的利用</h2>
+<h3 id="1-double-free">1.double free</h3>
+<p>double free，顾名思义，将一块chunk free两次。<br>
+double free的危害都有啥？<br>
+我们知道，free就是将一个chunk按照它的大小放在bin中,并且在其中以链表的形式连接起来。那我多free一次又何妨？<br>
+就是因为它是用链表的形式组合起来的，每一次将一个chunk分配出去后，bin中的尾指针数据就应该更新。那通过什么更新？当然是分配出去的这个chunk里面所填写的fd指针。而malloc过一次的chunk你是可以将其中的fd指针给修改的，那么当其再一次malloc的时候，就会将你修改后的fd指针指向的那块东西当做chunk分配给你了。那你岂不是就可以为所欲为了？<br>
+改GOT表！<br>
+疯狂leak内存。<br>
+Dynelf…<br>
+但是free过后，下一个chunk的p位不就置0了吗，你咋double free?<br>
+特殊情况来啦:fastbin。<br>
+为了防止被合并，fastbin就有一个特殊的机制，即使free后，下一位的chunk的p位也不置0，辣么我们就可以为所欲为啦！<br>
+需要注意的是，</p>
+<ol>
+<li>free的对象切记不要在topchunk旁边，不然你是fastbin也得死。</li>
+<li>即使是fastbin也是有检查的。就是不能连续两次free同一块内存空间，只要你间隔一个再进行free就好啦。</li>
+<li>目标空间里的size位要满足你malloc的辣个size。(最简单的fake chunk了吧)</li>
+<li>这边值得注意的是，在64位下，只检查最低的四个字节。(周末做题才发现的…感谢v爷爷)</li>
+</ol>
+<h3 id="2-UAF-use-after-free">2.UAF(use after free)</h3>
+<p>这个其实hin简单。<br>
+就是记得不要出现Dangling pointer就好了。<br>
+那么这个又有什么用呢？<br>
+基本上用这种东西的时候，这个chunk里都有一个函数指针。<br>
+那么就可以直接改掉那个函数指针，直接利用一发就好啦！</p>
+<h3 id="3-unlink">3.unlink</h3>
+<p>unlink这个被各种称为&quot;简单&quot;的利用…我想了半天…<br>
+但也是因为有这样想过，我才理了一遍对堆的理解。嘛…有利有弊嘛。<br>
+这里要先说一个思想，也是我理了半天才理清楚的东西:<br>
+<code>unlink重要的是过程！而不是结果！</code><br>
+这个怎么说呢？<br>
+首先，我们要知道unlink是啥。<br>
+从bin中将一个chunk取下来嘛！<br>
+那想象一下，假如是你写unlink，你要怎么做？<br>
+由于是双向链表，你肯定要进行这样的操作:<br>
+p -&gt; fd -&gt; bk = p -&gt; bk;<br>
+p -&gt; bk -&gt; fd = p -&gt; fd;<br>
+这样才算把一个chunk给取下来。<br>
+那么，假如我们可以控制一个chunk的fd和bk指针，再改掉它的p位，不就可以将两个值，通过本身的unlink机制，写在两个地方了吗？<br>
+假如可以直接这样利用，那无疑是很好的。只要你保证你fake的指针值没啥问题(有被映射)，就可以造成近似的任意位置写(反正一般来说也是写指针呀)<br>
+但是不幸的是，在现在这是有条件的。<br>
+简单来说，他要判断<br>
+<code> p -&gt; fd -&gt; bk == p    p -&gt; bk -&gt; fd == p</code><br>
+通过这两个判断后，才会执行之前的过程。<br>
+那么当题目想考你unlink的时候，首先会有一个堆溢出，其次有一个全局数组储存了你每次malloc的地址，那么你就可以在先在申请的chunk中伪造一块chunk,fake_fd内写入那个数组中你所要写的那个chunk的地址 - 0x18(x64下，bk相对于chunk头的偏移)，在fake_bk下写入地址 - 0x10，这样就可以绕过检查。<br>
+这样之后，在那个数组中就会将这个数组 - 0x18的地址写入其中(因为上面有赋值操作，且最后一步是将p -&gt; fd写入地址，而伪造的fake_fd就为地址 - 0x18)<br>
+有了这个就基本上可以为所欲为啦！基本上都会有堆这个数组的一些操作，比如查看目标地址上的值呀，再比如更改目标地址的东西呀…这里你就可以直接将这个数组后面的值给覆盖掉了，Do everything you want to do!</p>
+<hr>
+<p>2018.06.04 更新</p>
+<h3 id="4-house-of-orange">4.house of orange</h3>
+<p>house of orange里面可包含了太多太多的东西了…</p>
+<p>首先，我们要说一下FILE结构。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  _IO_FILE file;</span><br><span class="line">  <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> *<span class="title">vtable</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> &#123;</span></span><br><span class="line">  <span class="keyword">int</span> _flags;		<span class="comment">/* High-order word is _IO_MAGIC; rest is flags. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _IO_file_flags _flags</span></span><br><span class="line">  <span class="comment">/* The following pointers correspond to the C++ streambuf protocol. */</span></span><br><span class="line">  <span class="comment">/* Note:  Tk uses the _IO_read_ptr and _IO_read_end fields directly. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_read_ptr;	<span class="comment">/* Current read pointer */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_read_end;	<span class="comment">/* End of get area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_read_base;	<span class="comment">/* Start of putback+get area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_write_base;	<span class="comment">/* Start of put area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_write_ptr;	<span class="comment">/* Current put pointer. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_write_end;	<span class="comment">/* End of put area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_buf_base;	<span class="comment">/* Start of reserve area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_buf_end;	<span class="comment">/* End of reserve area. */</span></span><br><span class="line">  <span class="comment">/* The following fields are used to support backing up and undo. */</span></span><br><span class="line">  <span class="keyword">char</span> *_IO_save_base; <span class="comment">/* Pointer to start of non-current get area. */</span></span><br><span class="line">  <span class="keyword">char</span> *_IO_backup_base;  <span class="comment">/* Pointer to first valid character of backup area */</span></span><br><span class="line">  <span class="keyword">char</span> *_IO_save_end; <span class="comment">/* Pointer to end of non-current get area. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_marker</span> *_<span class="title">markers</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> *_<span class="title">chain</span>;</span> <span class="comment">/* offset 0x68 (64bits) */</span></span><br><span class="line">  <span class="keyword">int</span> _fileno;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> 0</span></span><br><span class="line">  <span class="keyword">int</span> _blksize;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="keyword">int</span> _flags2;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">  _IO_off_t _old_offset; <span class="comment">/* This used to be _offset but it&#x27;s too small.  */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> __HAVE_COLUMN <span class="comment">/* temporary */</span></span></span><br><span class="line">  <span class="comment">/* 1+column number of pbase(); 0 is unknown. */</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">short</span> _cur_column;</span><br><span class="line">  <span class="keyword">signed</span> <span class="keyword">char</span> _vtable_offset;</span><br><span class="line">  <span class="keyword">char</span> _shortbuf[<span class="number">1</span>];</span><br><span class="line">  <span class="comment">/*  char* _save_gptr;  char* _save_egptr; */</span></span><br><span class="line">  _IO_lock_t *_lock;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _IO_USE_OLD_IO_FILE <span class="comment">//开始宏判断（这段判断结果为否，所以没有定义_IO_FILE_complete，下面还是_IO_FILE）</span></span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_complete</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> _<span class="title">file</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">//结束宏判断</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> defined _G_IO_IO_FILE_VERSION &amp;&amp; _G_IO_IO_FILE_VERSION == 0x20001 <span class="comment">//依然是_IO_FILE的内容</span></span></span><br><span class="line">  _IO_off64_t _offset;</span><br><span class="line"><span class="meta"># <span class="meta-keyword">if</span> defined _LIBC || defined _GLIBCPP_USE_WCHAR_T</span></span><br><span class="line">  <span class="comment">/* Wide character stream stuff.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_codecvt</span> *_<span class="title">codecvt</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_wide_data</span> *_<span class="title">wide_data</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> *_<span class="title">freeres_list</span>;</span></span><br><span class="line">  <span class="keyword">void</span> *_freeres_buf;</span><br><span class="line"><span class="meta"># <span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="keyword">void</span> *__pad1;</span><br><span class="line">  <span class="keyword">void</span> *__pad2;</span><br><span class="line">  <span class="keyword">void</span> *__pad3;</span><br><span class="line">  <span class="keyword">void</span> *__pad4;</span><br><span class="line"><span class="meta"># <span class="meta-keyword">endif</span></span></span><br><span class="line">  <span class="keyword">size_t</span> __pad5;</span><br><span class="line">  <span class="keyword">int</span> _mode;</span><br><span class="line">  <span class="comment">/* Make sure we don&#x27;t get into trouble again.  */</span></span><br><span class="line">  <span class="keyword">char</span> _unused2[<span class="number">15</span> * <span class="keyword">sizeof</span> (<span class="keyword">int</span>) - <span class="number">4</span> * <span class="keyword">sizeof</span> (<span class="keyword">void</span> *) - <span class="keyword">sizeof</span> (<span class="keyword">size_t</span>)];</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    JUMP_FIELD(<span class="keyword">size_t</span>, __dummy);</span><br><span class="line">    JUMP_FIELD(<span class="keyword">size_t</span>, __dummy2);</span><br><span class="line">    JUMP_FIELD(_IO_finish_t, __finish);</span><br><span class="line">    JUMP_FIELD(_IO_overflow_t, __overflow);</span><br><span class="line">    JUMP_FIELD(_IO_underflow_t, __underflow);</span><br><span class="line">    JUMP_FIELD(_IO_underflow_t, __uflow);</span><br><span class="line">    JUMP_FIELD(_IO_pbackfail_t, __pbackfail);</span><br><span class="line">    <span class="comment">/* showmany */</span></span><br><span class="line">    JUMP_FIELD(_IO_xsputn_t, __xsputn);</span><br><span class="line">    JUMP_FIELD(_IO_xsgetn_t, __xsgetn);</span><br><span class="line">    JUMP_FIELD(_IO_seekoff_t, __seekoff);</span><br><span class="line">    JUMP_FIELD(_IO_seekpos_t, __seekpos);</span><br><span class="line">    JUMP_FIELD(_IO_setbuf_t, __setbuf);</span><br><span class="line">    JUMP_FIELD(_IO_sync_t, __sync);</span><br><span class="line">    JUMP_FIELD(_IO_doallocate_t, __doallocate);</span><br><span class="line">    JUMP_FIELD(_IO_read_t, __read);</span><br><span class="line">    JUMP_FIELD(_IO_write_t, __write);</span><br><span class="line">    JUMP_FIELD(_IO_seek_t, __seek);</span><br><span class="line">    JUMP_FIELD(_IO_close_t, __close);</span><br><span class="line">    JUMP_FIELD(_IO_stat_t, __stat);</span><br><span class="line">    JUMP_FIELD(_IO_showmanyc_t, __showmanyc);</span><br><span class="line">    JUMP_FIELD(_IO_imbue_t, __imbue);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> 0</span></span><br><span class="line">    get_column;</span><br><span class="line">    set_column;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>–直接从v爷爷博客上搬过来的</p>
+<p>这个结构体就是由一大堆指针值和vtable组成。想想看我们平常在如何用文件指针,就有一种豁然开朗的感觉。</p>
+<p>然后关于vtable，相信学过c++的人对于vtable这个概念并不陌生。在这里我只能给个猜测，libc源码中的vtables是来自各个系统自带的一些类的vtable，然后将这些东西管理在一起，用chain这个指针串成链表。</p>
+<p>所以平常我们用的那些文件函数都是对vtable里面函数的封装(后面利用会再次提到)。</p>
+<p>接下来说一下一<strong>unsortedbin attack</strong>。</p>
+<p>说这么玄乎，其实这个攻击就是在一个情况:<s>当unsortedbin只剩最后一个chunk的时候，它会将这个main_arena的top值(main_arena + 88)写入这个chunk的bk指针指向的地址.(我猜测原本只是为了初始化bin里面的fd和bk)</s> 并不是…这里是为了维护一个双向链表。这里没有检查。但由于这里要写的值是一个固定值，所以…用处比较少。一般用来改掉fastbin的maxsize，利用fastbin attack。但在这里，我们用来修改IO_list_all的值(也就是IO_FILE的头)。这里是为了触发这么一个机制：当IO_list_all这个指针对应的结构体不合法的时候，它会通过这个结构体的0x68偏移(chain)来继续向下遍历，而当我们将它的值改成unsortedbin的地址是，我们知道bins是一个数组，也就是所有的bins都是在一个线性地址下，那么当前地址+0x68的指针正好对应着smallbin的第6个成员的bk，也就是大小为0x60的smallbin的地址，所以我们就可以在smallbin 0x60大小的位置伪造一个IO_file结构体。</p>
+<p>伪造一个结构体又能如何呢？对文件进行操作的时候，那些文件函数都是调用vtable中的函数，而参数是调用结构体中的参数，所以我们只需要伪造这些参数，在理论上就可以getshell。</p>
+<p>在glibc 2.23版本以前，vtable这个虚函数表的指针是可以被修改的，所以你就可以把这个指针值改成可控区域的地址，伪造一个table就行。</p>
+<p>但是在2.24及以后的版本，这些vtable被单独放在了一个节区上，并且有对vtable的值进行检查，地址值只能在这个段上。所以只能用这个段里面的vtable来进行攻击。</p>
+<p>就我现在的理解而言，要想达成这样，那么那个vtable所对应的那个结构体必须要包含一个函数指针(不在vtable内)，在调用vtable里面的函数的时候会调用外面的函数，这样就能进行攻击。(这个兴许是错的，但我现在只理解到这里)</p>
+<p>最后具体咋绕网上教程好多…就不在这里多叙述啥了。总而言之，那个结构体你都可以控了，岂不是为所欲为。</p>
+<h2 id="后话">后话</h2>
+<p>对于pwn的理论的研究，我其实还是蛮乐在其中的。<br>
+但是对于写poc,调dbg…<br>
+真是太麻烦了！</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/09/%E5%86%85%E5%AD%98%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9(x86)/" rel="prev" title="内存机制及其相关内容(x86)">
+      <i class="fa fa-chevron-left"></i> 内存机制及其相关内容(x86)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/08/13/%E7%9C%8Bmalloc%E6%BA%90%E7%A0%81%E5%AD%A6%E5%88%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/" rel="next" title="看malloc源码学到的一些细节">
+      看malloc源码学到的一些细节 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%AF%9D"><span class="nav-number">1.</span> <span class="nav-text">前话</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#chunk"><span class="nav-number"></span> <span class="nav-text">chunk</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prev-size"><span class="nav-number">1.</span> <span class="nav-text">prev_size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#size"><span class="nav-number">2.</span> <span class="nav-text">size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fd"><span class="nav-number">3.</span> <span class="nav-text">fd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bk"><span class="nav-number">4.</span> <span class="nav-text">bk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fd-nextsize-only-in-largebins"><span class="nav-number">5.</span> <span class="nav-text">fd_nextsize(only in largebins)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bk-nextsize-only-in-largebins"><span class="nav-number">6.</span> <span class="nav-text">bk_nextsize(only in largebins)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E5%8A%A9%E4%BA%8E%E7%90%86%E8%A7%A3%E7%9A%84%E8%A1%A5%E5%85%85"><span class="nav-number">7.</span> <span class="nav-text">一些助于理解的补充</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bins"><span class="nav-number"></span> <span class="nav-text">bins</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8"><span class="nav-number"></span> <span class="nav-text">一些堆的利用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-double-free"><span class="nav-number">1.</span> <span class="nav-text">1.double free</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-UAF-use-after-free"><span class="nav-number">2.</span> <span class="nav-text">2.UAF(use after free)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-unlink"><span class="nav-number">3.</span> <span class="nav-text">3.unlink</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-house-of-orange"><span class="nav-number">4.</span> <span class="nav-text">4.house of orange</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E8%AF%9D"><span class="nav-number"></span> <span class="nav-text">后话</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ch1p"
+      src="/images/head.jpg">
+  <p class="site-author-name" itemprop="name">Ch1p</p>
+  <div class="site-description" itemprop="description">废萌爱好者 起步binner</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Ch111p" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Ch111p" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hduch1p@gmail.com" title="E-Mail → mailto:hduch1p@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oyiadin.github.io/" title="http:&#x2F;&#x2F;oyiadin.github.io" rel="noopener" target="_blank">oyiadin</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ckj123.com/" title="http:&#x2F;&#x2F;www.ckj123.com" rel="noopener" target="_blank">ckj123</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://li4n0.github.io/" title="http:&#x2F;&#x2F;li4n0.github.io" rel="noopener" target="_blank">Li4n0</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://arisxu.github.io/" title="http:&#x2F;&#x2F;arisxu.github.io" rel="noopener" target="_blank">Aris</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://vvv-347.space/" title="http:&#x2F;&#x2F;vvv-347.space&#x2F;" rel="noopener" target="_blank">vvv_347</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://veritas501.space/" title="http:&#x2F;&#x2F;veritas501.space" rel="noopener" target="_blank">veritas_501</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://mozhucy.cn/" title="http:&#x2F;&#x2F;mozhucy.cn&#x2F;" rel="noopener" target="_blank">MoZhuCY</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://120.79.211.91/" title="http:&#x2F;&#x2F;120.79.211.91" rel="noopener" target="_blank">C0ss4ck</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ch1p</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">33k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">30 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '43fe4f1af5be7f2c178a',
+      clientSecret: '64ff9432525e79002176f8e776f5227e3d802ed9',
+      repo        : 'Ch111p.github.io',
+      owner       : 'Ch111p',
+      admin       : ['Ch111p'],
+      id          : 'b7afea049fc72be071a962bc749fa573',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

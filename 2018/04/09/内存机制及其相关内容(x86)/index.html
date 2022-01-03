@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"gitalk","active":null,"storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}}},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="写在前面 内存机制也是一个算是比较早就接触的东西了。就我个人认为，对内存机制的理解应是对理解整个系统的一个很重要的基石，同时对于动态调试也有很大的帮助。在这段时间我总算是对这个有一个比较详细的了解。故写一篇博文，将其记录下来。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存机制及其相关内容(x86)">
+<meta property="og:url" content="http://yoursite.com/2018/04/09/%E5%86%85%E5%AD%98%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9(x86)/index.html">
+<meta property="og:site_name" content="Ch1p&#39;s blog">
+<meta property="og:description" content="写在前面 内存机制也是一个算是比较早就接触的东西了。就我个人认为，对内存机制的理解应是对理解整个系统的一个很重要的基石，同时对于动态调试也有很大的帮助。在这段时间我总算是对这个有一个比较详细的了解。故写一篇博文，将其记录下来。">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/1523347343955.png">
+<meta property="og:image" content="http://yoursite.com/images/1523349104260.png">
+<meta property="og:image" content="http://yoursite.com/images/1523351291910.png">
+<meta property="article:published_time" content="2018-04-09T04:05:24.000Z">
+<meta property="article:modified_time" content="2022-01-03T04:27:31.944Z">
+<meta property="article:author" content="Ch1p">
+<meta property="article:tag" content="windows">
+<meta property="article:tag" content="system">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/1523347343955.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/04/09/%E5%86%85%E5%AD%98%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9(x86)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>内存机制及其相关内容(x86) | Ch1p's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ch1p's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/09/%E5%86%85%E5%AD%98%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9(x86)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.jpg">
+      <meta itemprop="name" content="Ch1p">
+      <meta itemprop="description" content="废萌爱好者 起步binner">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ch1p's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内存机制及其相关内容(x86)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-09 12:05:24" itemprop="dateCreated datePublished" datetime="2018-04-09T12:05:24+08:00">2018-04-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-03 12:27:31" itemprop="dateModified" datetime="2022-01-03T12:27:31+08:00">2022-01-03</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2.6k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="写在前面">写在前面</h2>
+<p>内存机制也是一个算是比较早就接触的东西了。就我个人认为，对内存机制的理解应是对理解整个系统的一个很重要的基石，同时对于动态调试也有很大的帮助。在这段时间我总算是对这个有一个比较详细的了解。故写一篇博文，将其记录下来。</p>
+<span id="more"></span>
+<h2 id="一些基础概念">一些基础概念</h2>
+<h3 id="实模式与保护模式">实模式与保护模式</h3>
+<p>我们都知道，在8086下，我们可以直接控制实际地址的数值，看起来贼方便，但这会带来非常多的安全问题。所以保护模式应运而生。通过对内存的段页式管理，提高了安全性。</p>
+<h3 id="虚拟地址">虚拟地址</h3>
+<p>我们时常会讨论所谓虚拟地址(线性地址)。顾名思义，虚拟地址就是&quot;虚假的地址&quot;。我们知道，在x86下，每个进程都会认为自己有0x0 - 0xffffffff的一段空间。但我们开动我们的猪猪脑袋一想就知道，在现在这是不可能的。这时，进程所认为自己拥有的这块内存的某一个地址就称之为虚拟地址。</p>
+<h3 id="逻辑地址">逻辑地址</h3>
+<p>逻辑地址这个概念，我相信接触过汇编语言都不会陌生。在8086汇编中，逻辑地址是这样表示的:xx:yyyy 通过<code>段选择器 * 16 + 偏移地址</code>这就达到了虚拟地址。这也体现了一种分段的思想。但是linux皮啊，觉得你这个分段思想很菜，但是这是intel标准咋办？**把段选择器变成0不就好了吗！**那么在linux下，我们就可以近似的认为，逻辑地址==虚拟地址(尽管二者概念并不一样 且linux下还是有段属性的)但在windows下还是严格遵守的。具体的转化规则后面提。</p>
+<h3 id="物理地址">物理地址</h3>
+<p>所谓物理地址，就是内存真正的地址啦！</p>
+<h2 id="具体的转化过程">具体的转化过程</h2>
+<h3 id="逻辑地址-虚拟地址">逻辑地址 -&gt; 虚拟地址</h3>
+<p>前文提到，在8086下，逻辑地址 -&gt; 线性地址就是一个偏移的事情。但是在x86下，这个事情就变得没这么简单了。就是前文提到的&quot;段页式管理&quot;。先从段的角度出发。作为一个段，它有着这么几个特性:段基址，段限长和段属性。这边只做简单了解。段基址，顾名思义，这个段的基地址。段限长就决定了这个段的上限/下限，而段属性则是如rwe这样的。包括这些特性的一个东西我们就称之为段描述符。这里放一个具体的分布情况<br>
+<img src="../../../../images/1523347343955.png"><br>
+具体里面的这些东西是啥，我也不大清楚。这里贴上<a target="_blank" rel="noopener" href="https://www.cnblogs.com/chenwb89/p/operating_system_003.html">一篇文章</a>(我个人认为写的非常的好，很翔实。有兴趣再进一步了解的可以看看这篇文章)<br>
+总而言之，通过这个图片我们就可以清楚地了解了:假如我们要描述一个段，我们需要64位。但cs,ds这些只有16位呀，这可咋办？很简单，将这些段描述符都在一个地方用数组的形式存起来形成一个表单，然后cs/ds/…作为索引，不就可以完成这样的操作了吗？<br>
+在操作系统下有两个这样的表单:GDT和LDT。GDT是全局描述符表，其可以作用在整个系统中，而LDT是局部描述符表，一个线程就可以对应一个LDT。那么又一个问题来了:我们如何找到这个段描述符表的地址呢？这时候就要了解两个寄存器了:GDTR和LDTR。GDTR里面存放了GDT的基址，通过它，CPU就可以快速的找到GDT的地址，而LDTR里面存放的是某个线程的LDT&quot;基址&quot;。这里需要注意的是LDT其实是包括在GDT里面的，相当于LDTR里面存放的其实是GDT的偏移。具体的我们后面再说。<br>
+想要了解这个转化过程，我们还需要知道一个东西，就是段选择子，也就是以前我们所谓的段寄存器，它是长啥样的<br>
+<img src="../../../../images/1523349104260.png"><br>
+可以看见，前面是描述符的索引，中间有一个TI位，若TI为为0，说明这个地址处于GDT下，若为1则是在LDT下。最后的RPL是这个程序的特权级。<br>
+好了，有了这些知识后，我们就可以开始说明转化过程了。首先我们拿到了一个逻辑地址:xx:yyyyyyyy,这时候就要先看xx的TI位是0还是1。如果是0的话，说明这个段是在全局描述符表里的，所以我们就可以直接将xx作为index，通过GDTR里面保存的GDT的基址，在GDT中拿出那个段描述符，再通过这个段描述符里保存的基址，加上后面yyyyyyyy的偏移，最终得到一段虚拟地址。<br>
+如果是1的话过程会稍微复杂一点。1则说明这个段描述符在LDT中。那么在这里首先还是通过GDTR获得GDT的基址，然后用LDTR作为偏移，获得这个LDT的地址，再通过xx找到段描述符，最后再将基址取出，加上偏移得到虚拟地址。</p>
+<h3 id="虚拟地址-物理地址">虚拟地址 -&gt; 物理地址</h3>
+<p>假如没有分页机制的话，到这一步其实已经结束了。但是很残酷的是分页机制是有的。那么这时候，我们还得做一次转换。<br>
+那么首先，什么是分页呢？分页就是将物理地址以4k的大小分成很多个段，再通过一些管理机制就叫做分页机制。但是我们明明已经有了分段机制了啊，非常安全呀！为啥还需要分页机制？这时候你就得从内存的角度上想问题了。如果都按分段机制来，内存被硬性分成一个一个段，段这个东西对于内存来说还是太大了，就很容易造成留下一些缝隙没法被使用，也就是我们说的内存碎片的问题。辣么为了解决这个问题，分页机制就诞生啦。我以4k作为一个单位，映射到你所需要的虚拟地址上，既节省内存也能解决内存碎片的问题。还非常的灵活！那问题又来啦，如何管理这些页呢？<br>
+一个很直接的想法是，用类似于数组的方法，每个单元都存放一个页的地址不就好了？但如果这样，其占用的空间就是4mb。总而言之过去不能接受！太大了！<br>
+那有没有更好的办法呢？<br>
+通过各种索引。将32位的地址分成10 + 10 + 12。这样我们就将2^32的大小减少成了2^10 + 2^10 + 2^12。而前面的两个东西我们就称之为页目录和页表(注意:不是所有操作系统都是只用三个索引来找到页的，分的更过分的有许多)<br>
+其实到了这一步，整个转化的流程就基本出来了。最后再介绍一个寄存器:CR3。CR3保存了某个线程的页目录地址，我们之前获得的32位虚拟地址被分割成三个段:10 + 10 + 12。前十位作为在页目录的索引，获得页表的地址，中间十位为在页表中的索引，最后的12位则可以直接表示在一个页中的任意地址了。可以看下图帮助理解:<br>
+<img src="../../../../images/1523351291910.png"><br>
+这样整个地址转化的过程就结束啦！</p>
+<h2 id="一些没啥用的添加">一些没啥用的添加</h2>
+<p>我们可以想这样一个问题:CPU一个时间片结束后切换进程，其所对应的虚拟地址也会改变，这时候该怎么变化？<br>
+通过刚才说的，我相信你应该能想出来。只要将CR3寄存器和LDTR寄存器的值更改，就可以成功的切换进程了。所以其实所谓的&quot;映射&quot;，就是一个分页的逆推而已。希望这篇文章能对你有所帮助。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/windows/" rel="tag"># windows</a>
+              <a href="/tags/system/" rel="tag"># system</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/04/%E5%85%B3%E4%BA%8Epe%E7%BB%93%E6%9E%84%E7%9A%84%E7%90%86%E8%A7%A3(%E4%BA%8C)/" rel="prev" title="关于PE结构的理解(二)">
+      <i class="fa fa-chevron-left"></i> 关于PE结构的理解(二)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/27/%E5%85%B3%E4%BA%8E%E5%A0%86%E7%9A%84%E7%90%86%E8%A7%A3/" rel="next" title="关于堆的理解(持续更新)">
+      关于堆的理解(持续更新) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">一些基础概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%A8%A1%E5%BC%8F%E4%B8%8E%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F"><span class="nav-number">2.1.</span> <span class="nav-text">实模式与保护模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80"><span class="nav-number">2.2.</span> <span class="nav-text">虚拟地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%9C%B0%E5%9D%80"><span class="nav-number">2.3.</span> <span class="nav-text">逻辑地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80"><span class="nav-number">2.4.</span> <span class="nav-text">物理地址</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E7%9A%84%E8%BD%AC%E5%8C%96%E8%BF%87%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">具体的转化过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%9C%B0%E5%9D%80-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80"><span class="nav-number">3.1.</span> <span class="nav-text">逻辑地址 -&gt; 虚拟地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80-%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80"><span class="nav-number">3.2.</span> <span class="nav-text">虚拟地址 -&gt; 物理地址</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E6%B2%A1%E5%95%A5%E7%94%A8%E7%9A%84%E6%B7%BB%E5%8A%A0"><span class="nav-number">4.</span> <span class="nav-text">一些没啥用的添加</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ch1p"
+      src="/images/head.jpg">
+  <p class="site-author-name" itemprop="name">Ch1p</p>
+  <div class="site-description" itemprop="description">废萌爱好者 起步binner</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Ch111p" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Ch111p" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hduch1p@gmail.com" title="E-Mail → mailto:hduch1p@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oyiadin.github.io/" title="http:&#x2F;&#x2F;oyiadin.github.io" rel="noopener" target="_blank">oyiadin</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ckj123.com/" title="http:&#x2F;&#x2F;www.ckj123.com" rel="noopener" target="_blank">ckj123</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://li4n0.github.io/" title="http:&#x2F;&#x2F;li4n0.github.io" rel="noopener" target="_blank">Li4n0</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://arisxu.github.io/" title="http:&#x2F;&#x2F;arisxu.github.io" rel="noopener" target="_blank">Aris</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://vvv-347.space/" title="http:&#x2F;&#x2F;vvv-347.space&#x2F;" rel="noopener" target="_blank">vvv_347</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://veritas501.space/" title="http:&#x2F;&#x2F;veritas501.space" rel="noopener" target="_blank">veritas_501</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://mozhucy.cn/" title="http:&#x2F;&#x2F;mozhucy.cn&#x2F;" rel="noopener" target="_blank">MoZhuCY</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://120.79.211.91/" title="http:&#x2F;&#x2F;120.79.211.91" rel="noopener" target="_blank">C0ss4ck</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ch1p</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">33k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">30 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '43fe4f1af5be7f2c178a',
+      clientSecret: '64ff9432525e79002176f8e776f5227e3d802ed9',
+      repo        : 'Ch111p.github.io',
+      owner       : 'Ch111p',
+      admin       : ['Ch111p'],
+      id          : '9f560ffb0b15f41ddc3b794858390dae',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"gitalk","active":null,"storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}}},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前话 本来我是不喜欢去写wp的…因为懒()…就算有做出来题目也是在文档中简单写一下就好了…这道题目之所以去写，可能不是因为它出的很好(由于VM题我做的太少了，这才算是第一道完整做掉的题目)，而是我在接触这个题目的时候，对逆VM的经验或是看法有了自己的见解，这点比起我后来成功做出这道题更令我开心，希望下次遇到VM的题目时我能成功解出)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="护网杯RERERE题解">
+<meta property="og:url" content="http://yoursite.com/2018/10/15/%E6%8A%A4%E7%BD%91%E6%9D%AFRERERE%E9%A2%98%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Ch1p&#39;s blog">
+<meta property="og:description" content="前话 本来我是不喜欢去写wp的…因为懒()…就算有做出来题目也是在文档中简单写一下就好了…这道题目之所以去写，可能不是因为它出的很好(由于VM题我做的太少了，这才算是第一道完整做掉的题目)，而是我在接触这个题目的时候，对逆VM的经验或是看法有了自己的见解，这点比起我后来成功做出这道题更令我开心，希望下次遇到VM的题目时我能成功解出)">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/1539531355010.png">
+<meta property="og:image" content="http://yoursite.com/images/1539531426080.png">
+<meta property="og:image" content="http://yoursite.com/images/1539531611095.png">
+<meta property="og:image" content="http://yoursite.com/images/20181015001142.png">
+<meta property="article:published_time" content="2018-10-14T16:03:41.000Z">
+<meta property="article:modified_time" content="2022-01-03T04:27:31.945Z">
+<meta property="article:author" content="Ch1p">
+<meta property="article:tag" content="RE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/1539531355010.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/10/15/%E6%8A%A4%E7%BD%91%E6%9D%AFRERERE%E9%A2%98%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>护网杯RERERE题解 | Ch1p's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ch1p's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/15/%E6%8A%A4%E7%BD%91%E6%9D%AFRERERE%E9%A2%98%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.jpg">
+      <meta itemprop="name" content="Ch1p">
+      <meta itemprop="description" content="废萌爱好者 起步binner">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ch1p's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          护网杯RERERE题解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-15 00:03:41" itemprop="dateCreated datePublished" datetime="2018-10-15T00:03:41+08:00">2018-10-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-03 12:27:31" itemprop="dateModified" datetime="2022-01-03T12:27:31+08:00">2022-01-03</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>8.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>8 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前话">前话</h4>
+<p>本来我是不喜欢去写wp的…因为懒()…就算有做出来题目也是在文档中简单写一下就好了…这道题目之所以去写，可能不是因为它出的很好(由于VM题我做的太少了，这才算是第一道完整做掉的题目)，而是我在接触这个题目的时候，对逆VM的经验或是看法有了自己的见解，这点比起我后来成功做出这道题更令我开心，希望下次遇到VM的题目时我能成功解出)</p>
+<span id="more"></span>
+<h4 id="程序大体流程以及题解">程序大体流程以及题解</h4>
+<p>程序流程还是比较简单易读的。用IDA打开后，差不多这个模样</p>
+<p><img src="../../../../images/1539531355010.png" alt="Alt text"></p>
+<p>这里调用了三个函数，由一个函数表进行调用。</p>
+<p><img src="../../../../images/1539531426080.png" alt="Alt text"></p>
+<p>调用的三个函数是最后三个，分别做了虚拟寄存器/栈的分配以及初始化，VM的调用以及最后赋值的还原。重点在于中间这一 步，</p>
+<p><img src="../../../../images/1539531611095.png" alt="Alt text"></p>
+<p>一点都不花里胡哨，也没有混淆。就是这里用虚函数表做调用也太烦了= =翻得翻半天。再后面就是正常的VM流程了。逆出每个操作，然后打log，读汇编就可以解决…其实这一点都不算难题。要是以前有经验我觉得一小时到两小时就可以做完了= =还是输在too young。。打log的脚本如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br></pre></td><td class="code"><pre><span class="line">opcode = [<span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">47</span>, <span class="number">85</span>, <span class="number">5</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">71</span>, <span class="number">34</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">75</span>, <span class="number">51</span>, <span class="number">73</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">70</span>, <span class="number">84</span>, <span class="number">16</span>, <span class="number">72</span>, <span class="number">1</span>, <span class="number">77</span>, <span class="number">39</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">16</span>, <span class="number">72</span>, <span class="number">1</span>, <span class="number">68</span>, <span class="number">22</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">57</span>, <span class="number">84</span>, <span class="number">16</span>, <span class="number">72</span>, <span class="number">1</span>, <span class="number">68</span>, <span class="number">11</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">65</span>, <span class="number">84</span>, <span class="number">1</span>, <span class="number">72</span>, <span class="number">1</span>, <span class="number">68</span>, <span class="number">6</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">72</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">5</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>, <span class="number">85</span>, <span class="number">64</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">71</span>, <span class="number">17</span>, <span class="number">86</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">68</span>, <span class="number">9</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">88</span>, <span class="number">18</span>, <span class="number">83</span>, <span class="number">16</span>, <span class="number">85</span>, <span class="number">43</span>, <span class="number">79</span>, <span class="number">51</span>, <span class="number">180</span>, <span class="number">136</span>, <span class="number">172</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">18</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">3</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">71</span>, <span class="number">17</span>, <span class="number">86</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">68</span>, <span class="number">9</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">88</span>, <span class="number">18</span>, <span class="number">83</span>, <span class="number">16</span>, <span class="number">85</span>, <span class="number">43</span>, <span class="number">79</span>, <span class="number">74</span>, <span class="number">11</span>, <span class="number">148</span>, <span class="number">63</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">18</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">3</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">71</span>, <span class="number">17</span>, <span class="number">86</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">68</span>, <span class="number">9</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">88</span>, <span class="number">18</span>, <span class="number">83</span>, <span class="number">16</span>, <span class="number">85</span>, <span class="number">43</span>, <span class="number">79</span>, <span class="number">124</span>, <span class="number">92</span>, <span class="number">220</span>, <span class="number">236</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">18</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">3</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">71</span>, <span class="number">17</span>, <span class="number">86</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">68</span>, <span class="number">9</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">88</span>, <span class="number">18</span>, <span class="number">83</span>, <span class="number">16</span>, <span class="number">85</span>, <span class="number">43</span>, <span class="number">79</span>, <span class="number">57</span>, <span class="number">41</span>, <span class="number">117</span>, <span class="number">27</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">18</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">3</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">71</span>, <span class="number">17</span>, <span class="number">86</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">68</span>, <span class="number">9</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">88</span>, <span class="number">18</span>, <span class="number">83</span>, <span class="number">16</span>, <span class="number">85</span>, <span class="number">43</span>, <span class="number">79</span>, <span class="number">30</span>, <span class="number">242</span>, <span class="number">107</span>, <span class="number">45</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">18</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">3</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">48</span>, <span class="number">71</span>, <span class="number">17</span>, <span class="number">86</span>, <span class="number">70</span>, <span class="number">0</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">2</span>, <span class="number">68</span>, <span class="number">9</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">89</span>, <span class="number">2</span>, <span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">88</span>, <span class="number">18</span>, <span class="number">83</span>, <span class="number">16</span>, <span class="number">85</span>, <span class="number">43</span>, <span class="number">79</span>, <span class="number">131</span>, <span class="number">141</span>, <span class="number">181</span>, <span class="number">46</span>, <span class="number">84</span>, <span class="number">32</span>, <span class="number">72</span>, <span class="number">18</span>, <span class="number">71</span>, <span class="number">0</span>, <span class="number">75</span>, <span class="number">2</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="number">67</span>]</span><br><span class="line"></span><br><span class="line">length = <span class="built_in">len</span>(opcode)</span><br><span class="line">i = <span class="number">0</span></span><br><span class="line">j = <span class="number">0</span></span><br><span class="line">stack = []</span><br><span class="line">reg = [<span class="number">0</span>] * <span class="number">5</span></span><br><span class="line"><span class="keyword">while</span>(i &lt; length):</span><br><span class="line">    <span class="keyword">if</span>(opcode[i] == <span class="number">67</span>):</span><br><span class="line">        i += <span class="number">1</span></span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">        <span class="comment">#break</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">68</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; jl $%d&#x27;</span>%(i + opcode[i + <span class="number">1</span>] + <span class="number">2</span>))</span><br><span class="line">        <span class="comment"># if(reg[4] == -1):</span></span><br><span class="line">        <span class="comment">#     i += (opcode[i + 1] + 2)</span></span><br><span class="line">        <span class="comment"># else:</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">69</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; div reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4) // (opcode[i + 1] &amp; 0xf)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">70</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; mov reg%d,input&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = ord(&#x27;A&#x27;)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">71</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; xor reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,(opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>)))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = reg[(opcode[i + 1] &gt;&gt; 4)] ^ reg[(opcode[i + 1] &amp; 0xf)]</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">72</span>):</span><br><span class="line">        num = reg[(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>)] - reg[(opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>)]</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; cmp reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,(opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>)))</span><br><span class="line">        <span class="comment"># if num == 0:</span></span><br><span class="line">        <span class="comment">#     reg[4] = 0</span></span><br><span class="line">        <span class="comment"># elif num &gt; 0:</span></span><br><span class="line">        <span class="comment">#     reg[4] = 1</span></span><br><span class="line">        <span class="comment"># else:</span></span><br><span class="line">        <span class="comment">#     reg[4] = -1</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">73</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; inc input&#x27;</span>)</span><br><span class="line">        i += <span class="number">1</span></span><br><span class="line">        j += <span class="number">1</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">74</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; and reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>)))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4) &amp; (opcode[i + 1] &amp; 0xf)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">75</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; je $%d&#x27;</span>%(i + opcode[i + <span class="number">1</span>] + <span class="number">2</span>))</span><br><span class="line">        <span class="comment"># if(reg[4] == 0):</span></span><br><span class="line">        <span class="comment">#     i += (2 + opcode[i + 1])</span></span><br><span class="line">        <span class="comment"># else:</span></span><br><span class="line">        <span class="comment">#     i += 2</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">76</span>):</span><br><span class="line">        <span class="built_in">print</span>(opcode)</span><br><span class="line">        <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">15</span>):</span><br><span class="line">            opcode[i + k + <span class="number">1</span>] ^= <span class="number">0x66</span></span><br><span class="line">        <span class="built_in">print</span>(opcode)</span><br><span class="line">        i += <span class="number">16</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">77</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; jg $%d&#x27;</span>%(opcode[i + <span class="number">1</span>] + <span class="number">2</span> + i))</span><br><span class="line">        <span class="comment"># if(reg[4] == 1):</span></span><br><span class="line">        <span class="comment">#     i += (2 + opcode[i + 1])</span></span><br><span class="line">        <span class="comment"># else:</span></span><br><span class="line">        <span class="comment">#     i += 2</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">78</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; dec reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] -= 1</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">79</span>):</span><br><span class="line">        subAddr = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">            subAddr &lt;&lt;= <span class="number">8</span></span><br><span class="line">            subAddr |= opcode[i + k + <span class="number">1</span>]</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; push %d&#x27;</span>%subAddr)</span><br><span class="line">        stack.append(subAddr)</span><br><span class="line">        i += <span class="number">5</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">80</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; inc reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4) + 1</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">81</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; mov reg%d,reg%d&#x27;</span>%((opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>),opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">82</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; push %d&#x27;</span>%reg[(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>)])</span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">83</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; add reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4) + (opcode[i + 1] &amp; 0xf)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">84</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; pop reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = stack.pop()</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">85</span>):</span><br><span class="line">        <span class="comment"># if(reg[2] == 0):</span></span><br><span class="line">        <span class="comment">#     i += 2</span></span><br><span class="line">        <span class="comment"># else:</span></span><br><span class="line">        <span class="comment">#     reg[2] -= 1</span></span><br><span class="line">        <span class="comment">#     i -= opcode[i + 1]</span></span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; je $%d&#x27;</span>%(i - opcode[i + <span class="number">1</span>]))</span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">86</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; dec input&#x27;</span>)</span><br><span class="line">        i += <span class="number">1</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">87</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; getNum%d&#x27;</span>%reg[opcode[i + <span class="number">1</span>]])</span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">88</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; mul reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4) * (opcode[i + 1] &amp; 0xf)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">elif</span>(opcode[i] == <span class="number">89</span>):</span><br><span class="line">        <span class="built_in">print</span>(i,<span class="string">&#x27; sub reg%d,reg%d&#x27;</span>%(opcode[i + <span class="number">1</span>] &gt;&gt; <span class="number">4</span>,opcode[i + <span class="number">1</span>] &amp; <span class="number">0xf</span>))</span><br><span class="line">        <span class="comment">#reg[opcode[i + 1] &gt;&gt; 4] = (opcode[i + 1] &gt;&gt; 4) - (opcode[i + 1] &amp; 0xf)</span></span><br><span class="line">        i += <span class="number">2</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="built_in">print</span>(opcode[i])</span><br><span class="line">        i += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>最后打出来的log长这样，里面有一些重要的注释</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br></pre></td><td class="code"><pre><span class="line">0  push 47</span><br><span class="line">5  je $0</span><br><span class="line">7  pop reg3</span><br><span class="line">9  mov reg0,input</span><br><span class="line">11  xor reg2,reg2</span><br><span class="line">13  cmp reg0,reg2 //与\x00做比较</span><br><span class="line">15  je $68 //结束循环</span><br><span class="line">17  inc input</span><br><span class="line">18  push 70</span><br><span class="line">23  pop reg1</span><br><span class="line">25  cmp reg0,reg1</span><br><span class="line">27  jg $68 //小于&#x27;F&#x27;</span><br><span class="line">29  push 48</span><br><span class="line">34  pop reg1</span><br><span class="line">36  cmp reg0,reg1</span><br><span class="line">38  jl $62 //大于&#x27;0&#x27;</span><br><span class="line">40  push 57</span><br><span class="line">45  pop reg1</span><br><span class="line">47  cmp reg0,reg1 //且小于&#x27;9&#x27;</span><br><span class="line">49  jl $62</span><br><span class="line">51  push 65</span><br><span class="line">56  pop reg0</span><br><span class="line">58  cmp reg0,reg1</span><br><span class="line">60  jl $68 //大于&#x27;A&#x27;</span><br><span class="line">62  xor reg0,reg0</span><br><span class="line">64  cmp reg0,reg0</span><br><span class="line">66  je $73</span><br><span class="line">68  xor reg0,reg0</span><br><span class="line">70  inc reg0</span><br><span class="line">73  je $9 //遍历检查</span><br><span class="line">75  push 7</span><br><span class="line">80  pop reg3</span><br><span class="line">82  xor reg1,reg1</span><br><span class="line">84  dec input</span><br><span class="line">85  mov reg0,input</span><br><span class="line">87  push 48</span><br><span class="line">92  pop reg2</span><br><span class="line">94  sub reg0,reg2 //-&#x27;0&#x27;</span><br><span class="line">96  push 10</span><br><span class="line">101  pop reg2</span><br><span class="line">103  cmp reg0,reg2</span><br><span class="line">105  jl $116 //若范围在&#x27;0&#x27; - &#x27;9&#x27;之间,输入为数字</span><br><span class="line">107  push 7 //若不在,则继续-9,将&#x27;A&#x27; - &#x27;F&#x27;转换成数字</span><br><span class="line">112  pop reg2</span><br><span class="line">114  sub reg0,reg2</span><br><span class="line">116  push 16</span><br><span class="line">121  pop reg2</span><br><span class="line">123  mul reg1,reg2</span><br><span class="line">125  add reg1,reg0 //十六进制转换</span><br><span class="line">127  je $84 //这也许是loop?? 反正就是十六进制比较</span><br><span class="line">129  push 867469484 </span><br><span class="line">134  pop reg2</span><br><span class="line">136  cmp reg1,reg2 //比较结果为0x33b488ac</span><br><span class="line">138  xor reg0,reg0</span><br><span class="line">140  je $145</span><br><span class="line">142  inc reg0</span><br><span class="line">145  push 7</span><br><span class="line">150  pop reg3</span><br><span class="line">152  xor reg1,reg1</span><br><span class="line">154  dec input</span><br><span class="line">155  mov reg0,input</span><br><span class="line">157  push 48</span><br><span class="line">162  pop reg2</span><br><span class="line">164  sub reg0,reg2</span><br><span class="line">166  push 10</span><br><span class="line">171  pop reg2</span><br><span class="line">173  cmp reg0,reg2</span><br><span class="line">175  jl $186</span><br><span class="line">177  push 7</span><br><span class="line">182  pop reg2</span><br><span class="line">184  sub reg0,reg2</span><br><span class="line">186  push 16</span><br><span class="line">191  pop reg2</span><br><span class="line">193  mul reg1,reg2</span><br><span class="line">195  add reg1,reg0</span><br><span class="line">197  je $154</span><br><span class="line">199  push 1242272831</span><br><span class="line">204  pop reg2</span><br><span class="line">206  cmp reg1,reg2</span><br><span class="line">208  xor reg0,reg0</span><br><span class="line">210  je $215 //与上面没有差别,此时十六进制为0x4a0b943f</span><br><span class="line">212  inc reg0</span><br><span class="line">215  push 7</span><br><span class="line">220  pop reg3</span><br><span class="line">222  xor reg1,reg1</span><br><span class="line">224  dec input</span><br><span class="line">225  mov reg0,input</span><br><span class="line">227  push 48</span><br><span class="line">232  pop reg2</span><br><span class="line">234  sub reg0,reg2</span><br><span class="line">236  push 10</span><br><span class="line">241  pop reg2</span><br><span class="line">243  cmp reg0,reg2</span><br><span class="line">245  jl $256</span><br><span class="line">247  push 7</span><br><span class="line">252  pop reg2</span><br><span class="line">254  sub reg0,reg2</span><br><span class="line">256  push 16</span><br><span class="line">261  pop reg2</span><br><span class="line">263  mul reg1,reg2</span><br><span class="line">265  add reg1,reg0</span><br><span class="line">267  je $224</span><br><span class="line">269  push 2086460652 //0x7c5cdcec</span><br><span class="line">274  pop reg2</span><br><span class="line">276  cmp reg1,reg2</span><br><span class="line">278  xor reg0,reg0</span><br><span class="line">280  je $285</span><br><span class="line">282  inc reg0</span><br><span class="line">285  push 7</span><br><span class="line">290  pop reg3</span><br><span class="line">292  xor reg1,reg1</span><br><span class="line">294  dec input</span><br><span class="line">295  mov reg0,input</span><br><span class="line">297  push 48</span><br><span class="line">302  pop reg2</span><br><span class="line">304  sub reg0,reg2</span><br><span class="line">306  push 10</span><br><span class="line">311  pop reg2</span><br><span class="line">313  cmp reg0,reg2</span><br><span class="line">315  jl $326</span><br><span class="line">317  push 7</span><br><span class="line">322  pop reg2</span><br><span class="line">324  sub reg0,reg2</span><br><span class="line">326  push 16</span><br><span class="line">331  pop reg2</span><br><span class="line">333  mul reg1,reg2</span><br><span class="line">335  add reg1,reg0</span><br><span class="line">337  je $294</span><br><span class="line">339  push 959018267 //0x3929751b</span><br><span class="line">344  pop reg2</span><br><span class="line">346  cmp reg1,reg2</span><br><span class="line">348  xor reg0,reg0</span><br><span class="line">350  je $355</span><br><span class="line">352  inc reg0</span><br><span class="line">355  push 7</span><br><span class="line">360  pop reg3</span><br><span class="line">362  xor reg1,reg1</span><br><span class="line">364  dec input</span><br><span class="line">365  mov reg0,input</span><br><span class="line">367  push 48</span><br><span class="line">372  pop reg2</span><br><span class="line">374  sub reg0,reg2</span><br><span class="line">376  push 10</span><br><span class="line">381  pop reg2</span><br><span class="line">383  cmp reg0,reg2</span><br><span class="line">385  jl $396</span><br><span class="line">387  push 7</span><br><span class="line">392  pop reg2</span><br><span class="line">394  sub reg0,reg2</span><br><span class="line">396  push 16</span><br><span class="line">401  pop reg2</span><br><span class="line">403  mul reg1,reg2</span><br><span class="line">405  add reg1,reg0</span><br><span class="line">407  je $364</span><br><span class="line">409  push 519203629 //0x1ef26b2d</span><br><span class="line">414  pop reg2</span><br><span class="line">416  cmp reg1,reg2</span><br><span class="line">418  xor reg0,reg0</span><br><span class="line">420  je $425</span><br><span class="line">422  inc reg0</span><br><span class="line">425  push 7</span><br><span class="line">430  pop reg3</span><br><span class="line">432  xor reg1,reg1</span><br><span class="line">434  dec input</span><br><span class="line">435  mov reg0,input</span><br><span class="line">437  push 48</span><br><span class="line">442  pop reg2</span><br><span class="line">444  sub reg0,reg2</span><br><span class="line">446  push 10</span><br><span class="line">451  pop reg2</span><br><span class="line">453  cmp reg0,reg2</span><br><span class="line">455  jl $466</span><br><span class="line">457  push 7</span><br><span class="line">462  pop reg2</span><br><span class="line">464  sub reg0,reg2</span><br><span class="line">466  push 16</span><br><span class="line">471  pop reg2</span><br><span class="line">473  mul reg1,reg2</span><br><span class="line">475  add reg1,reg0</span><br><span class="line">477  je $434</span><br><span class="line">479  push 2207102254 //0x838db52e</span><br><span class="line">484  pop reg2</span><br><span class="line">486  cmp reg1,reg2</span><br><span class="line">488  xor reg0,reg0</span><br><span class="line">490  je $494</span><br><span class="line">492  inc reg0</span><br><span class="line"></span><br><span class="line">/*最后我们拿到了这六个数字</span><br><span class="line">0x33b488ac</span><br><span class="line">0x4a0b943f</span><br><span class="line">0x7c5cdcec</span><br><span class="line">0x3929751b</span><br><span class="line">0x1ef26b2d</span><br><span class="line">0x838db52e</span><br><span class="line">但需要注意的是,这里遍历是从前往后,最后得到数字是从后往前</span><br><span class="line">故需要将其还原回去*/</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>最后就只要将这些字符倒序再大写就可以拿到flag</p>
+<p><img src="../../../../images/20181015001142.png" alt="Alt text"></p>
+<p>至此，本题就结束了。</p>
+<h4 id="对VM的看法">对VM的看法</h4>
+<p>由于以前对于VM只有粗浅的认识，导致一开始我在打log的时候非常吃力。。我只关心指令本身，而对操作数的分析直接忽视了。。导致打出来的log非常奇怪。。我还很担心中间数字对于程序流的影响，毕竟有je,jmp,jg这些跳转。。还不知道输入该怎么处理，全部置’a’还是啥。。经验的缺乏导致做题缺乏自信，中间很多指令分析都有问题，逻辑越来越乱。。今天去复现才慢慢理解到，跳转指令只要分析出来就好了，你不需要去完整的走一遍程序流，寄存器值也不需要太过担心，唯一要去担心的是立即数，所以你需要将这些数字还原。。VM作为机器的模拟是非常有趣的，对reg的选择方法真是惊到我了233，一个字节分别4位作为选择子也太帅了吧！有机会我想看看机器指令的操作数是怎么配合的hhh</p>
+<h4 id="后记">后记</h4>
+<p>逆VM也太JB有趣了！</p>
+<p>政博学长说的一些操作有空会去尝试一波。</p>
+<p>立个flag…下周要把锅全done了！</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RE/" rel="tag"># RE</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/13/%E7%9C%8Bmalloc%E6%BA%90%E7%A0%81%E5%AD%A6%E5%88%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/" rel="prev" title="看malloc源码学到的一些细节">
+      <i class="fa fa-chevron-left"></i> 看malloc源码学到的一些细节
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/03/26/Crypto%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" rel="next" title="Crypto学习总结">
+      Crypto学习总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%AF%9D"><span class="nav-number">1.</span> <span class="nav-text">前话</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%A4%A7%E4%BD%93%E6%B5%81%E7%A8%8B%E4%BB%A5%E5%8F%8A%E9%A2%98%E8%A7%A3"><span class="nav-number">2.</span> <span class="nav-text">程序大体流程以及题解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9VM%E7%9A%84%E7%9C%8B%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">对VM的看法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">4.</span> <span class="nav-text">后记</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ch1p"
+      src="/images/head.jpg">
+  <p class="site-author-name" itemprop="name">Ch1p</p>
+  <div class="site-description" itemprop="description">废萌爱好者 起步binner</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Ch111p" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Ch111p" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hduch1p@gmail.com" title="E-Mail → mailto:hduch1p@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oyiadin.github.io/" title="http:&#x2F;&#x2F;oyiadin.github.io" rel="noopener" target="_blank">oyiadin</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ckj123.com/" title="http:&#x2F;&#x2F;www.ckj123.com" rel="noopener" target="_blank">ckj123</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://li4n0.github.io/" title="http:&#x2F;&#x2F;li4n0.github.io" rel="noopener" target="_blank">Li4n0</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://arisxu.github.io/" title="http:&#x2F;&#x2F;arisxu.github.io" rel="noopener" target="_blank">Aris</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://vvv-347.space/" title="http:&#x2F;&#x2F;vvv-347.space&#x2F;" rel="noopener" target="_blank">vvv_347</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://veritas501.space/" title="http:&#x2F;&#x2F;veritas501.space" rel="noopener" target="_blank">veritas_501</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://mozhucy.cn/" title="http:&#x2F;&#x2F;mozhucy.cn&#x2F;" rel="noopener" target="_blank">MoZhuCY</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://120.79.211.91/" title="http:&#x2F;&#x2F;120.79.211.91" rel="noopener" target="_blank">C0ss4ck</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ch1p</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">33k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">30 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '43fe4f1af5be7f2c178a',
+      clientSecret: '64ff9432525e79002176f8e776f5227e3d802ed9',
+      repo        : 'Ch111p.github.io',
+      owner       : 'Ch111p',
+      admin       : ['Ch111p'],
+      id          : '34f23948adedfae44e242a468c34df20',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
